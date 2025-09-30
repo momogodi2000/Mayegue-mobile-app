@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/student_dashboard_viewmodel.dart';
 import '../../../../shared/widgets/layouts/app_scaffold.dart';
+import '../../../../shared/widgets/user_guide_widget.dart';
 import '../../../../core/constants/supported_languages.dart';
 
 class StudentDashboardView extends StatefulWidget {
@@ -51,9 +52,11 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
                       ? NetworkImage(viewModel.profilePicture!)
                       : null,
                   child: viewModel.profilePicture == null
-                      ? Text(viewModel.studentName.isNotEmpty
-                          ? viewModel.studentName[0].toUpperCase()
-                          : 'E')
+                      ? Text(
+                          viewModel.studentName.isNotEmpty
+                              ? viewModel.studentName[0].toUpperCase()
+                              : 'E',
+                        )
                       : null,
                 ),
                 const SizedBox(width: 12),
@@ -67,7 +70,9 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
                     Text(
                       'Niveau: ${viewModel.currentLevel}',
                       style: const TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.normal),
+                        fontSize: 12,
+                        fontWeight: FontWeight.normal,
+                      ),
                     ),
                   ],
                 ),
@@ -113,7 +118,9 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
   }
 
   Widget _buildOverviewTab(
-      BuildContext context, StudentDashboardViewModel viewModel) {
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+  ) {
     return RefreshIndicator(
       onRefresh: () => viewModel.refreshDashboard(),
       child: SingleChildScrollView(
@@ -144,7 +151,8 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
                     ),
                     const SizedBox(height: 8),
                     Text(
-                        'Progression globale: ${viewModel.overallProgress.toStringAsFixed(1)}%'),
+                      'Progression globale: ${viewModel.overallProgress.toStringAsFixed(1)}%',
+                    ),
                   ],
                 ),
               ),
@@ -159,20 +167,19 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    Icon(Icons.local_fire_department,
-                        color: Colors.orange[700], size: 32),
+                    Icon(
+                      Icons.local_fire_department,
+                      color: Colors.orange[700],
+                      size: 32,
+                    ),
                     const SizedBox(width: 12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           '${viewModel.currentStreak} jours',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
-                              ?.copyWith(
-                                color: Colors.orange[700],
-                              ),
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(color: Colors.orange[700]),
                         ),
                         const Text('Série actuelle'),
                       ],
@@ -261,8 +268,9 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
 
             if (viewModel.currentLearningLanguages.isNotEmpty) ...[
               ...viewModel.currentLearningLanguages.map((languageCode) {
-                final languageInfo =
-                    SupportedLanguages.getLanguageInfo(languageCode);
+                final languageInfo = SupportedLanguages.getLanguageInfo(
+                  languageCode,
+                );
                 final progress = viewModel.getLanguageProgress(languageCode);
 
                 return Card(
@@ -320,17 +328,28 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
             const SizedBox(height: 12),
 
             ...viewModel.recentActivities
-                .map((activity) => Card(
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          child: Icon(_getActivityIcon(activity['type'])),
-                        ),
-                        title: Text(activity['title']),
-                        subtitle: Text(activity['description']),
-                        trailing: Text(activity['time']),
+                .map(
+                  (activity) => Card(
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        child: Icon(_getActivityIcon(activity['type'])),
                       ),
-                    ))
+                      title: Text(activity['title']),
+                      subtitle: Text(activity['description']),
+                      trailing: Text(activity['time']),
+                    ),
+                  ),
+                )
                 .toList(),
+
+            const SizedBox(height: 16),
+
+            // User Guide
+            UserGuideWidget(
+              role: 'student',
+              title: 'Guide Étudiant',
+              sections: UserGuideSections.getStudentGuide(),
+            ),
           ],
         ),
       ),
@@ -338,7 +357,9 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
   }
 
   Widget _buildLanguagesTab(
-      BuildContext context, StudentDashboardViewModel viewModel) {
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+  ) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -363,8 +384,9 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
             ),
             const SizedBox(height: 12),
             ...viewModel.currentLearningLanguages.map((languageCode) {
-              final languageInfo =
-                  SupportedLanguages.getLanguageInfo(languageCode);
+              final languageInfo = SupportedLanguages.getLanguageInfo(
+                languageCode,
+              );
               final progress = viewModel.getLanguageProgress(languageCode);
 
               return Card(
@@ -403,7 +425,10 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
                           IconButton(
                             icon: const Icon(Icons.remove_circle_outline),
                             onPressed: () => _removeLanguage(
-                                context, viewModel, languageCode),
+                              context,
+                              viewModel,
+                              languageCode,
+                            ),
                             tooltip: 'Arrêter l\'apprentissage',
                           ),
                         ],
@@ -457,10 +482,12 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
           ...SupportedLanguages.languages.entries.map((entry) {
             final languageCode = entry.key;
             final languageInfo = entry.value;
-            final isLearning =
-                viewModel.currentLearningLanguages.contains(languageCode);
-            final isCompleted =
-                viewModel.completedLanguages.contains(languageCode);
+            final isLearning = viewModel.currentLearningLanguages.contains(
+              languageCode,
+            );
+            final isCompleted = viewModel.completedLanguages.contains(
+              languageCode,
+            );
 
             return Card(
               color: isCompleted ? Colors.green[50] : null,
@@ -484,24 +511,23 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
                                 children: [
                                   Text(
                                     languageInfo.name,
-                                    style:
-                                        Theme.of(context).textTheme.titleLarge,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleLarge,
                                   ),
                                   if (isCompleted) ...[
                                     const SizedBox(width: 8),
-                                    const Icon(Icons.check_circle,
-                                        color: Colors.green),
+                                    const Icon(
+                                      Icons.check_circle,
+                                      color: Colors.green,
+                                    ),
                                   ],
                                 ],
                               ),
                               Text(
                                 languageInfo.nativeName,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(
-                                      fontStyle: FontStyle.italic,
-                                    ),
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontStyle: FontStyle.italic),
                               ),
                               Text(
                                 'Région: ${languageInfo.region}',
@@ -521,7 +547,10 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
                         if (isLearning)
                           ElevatedButton(
                             onPressed: () => _continueLearning(
-                                context, viewModel, languageCode),
+                              context,
+                              viewModel,
+                              languageCode,
+                            ),
                             child: const Text('Continuer'),
                           )
                         else if (!isCompleted)
@@ -533,7 +562,10 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
                         else
                           ElevatedButton(
                             onPressed: () => _reviewLanguage(
-                                context, viewModel, languageCode),
+                              context,
+                              viewModel,
+                              languageCode,
+                            ),
                             child: const Text('Réviser'),
                           ),
                       ],
@@ -547,8 +579,8 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
                     Text(
                       languageInfo.culturalInfo,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontStyle: FontStyle.italic,
-                          ),
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                   ],
                 ),
@@ -561,7 +593,9 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
   }
 
   Widget _buildLessonsTab(
-      BuildContext context, StudentDashboardViewModel viewModel) {
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+  ) {
     return DefaultTabController(
       length: viewModel.currentLearningLanguages.length + 1,
       child: Column(
@@ -571,8 +605,9 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
             tabs: [
               const Tab(text: 'Toutes'),
               ...viewModel.currentLearningLanguages.map((languageCode) {
-                final languageInfo =
-                    SupportedLanguages.getLanguageInfo(languageCode);
+                final languageInfo = SupportedLanguages.getLanguageInfo(
+                  languageCode,
+                );
                 return Tab(
                   text: languageInfo?.name ?? languageCode,
                   icon: Text(languageInfo?.flag ?? '🇨🇲'),
@@ -587,7 +622,10 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
                 ...viewModel.currentLearningLanguages
                     .map(
                       (languageCode) => _buildLanguageLessons(
-                          context, viewModel, languageCode),
+                        context,
+                        viewModel,
+                        languageCode,
+                      ),
                     )
                     .toList(),
               ],
@@ -599,7 +637,9 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
   }
 
   Widget _buildAllLessons(
-      BuildContext context, StudentDashboardViewModel viewModel) {
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+  ) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: viewModel.availableLessons.length,
@@ -610,8 +650,11 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
     );
   }
 
-  Widget _buildLanguageLessons(BuildContext context,
-      StudentDashboardViewModel viewModel, String languageCode) {
+  Widget _buildLanguageLessons(
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+    String languageCode,
+  ) {
     final lessons = viewModel.getLessonsByLanguage(languageCode);
 
     if (lessons.isEmpty) {
@@ -637,8 +680,11 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
     );
   }
 
-  Widget _buildLessonCard(BuildContext context,
-      StudentDashboardViewModel viewModel, Map<String, dynamic> lesson) {
+  Widget _buildLessonCard(
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+    Map<String, dynamic> lesson,
+  ) {
     final isCompleted = lesson['isCompleted'] ?? false;
     final isLocked = lesson['isLocked'] ?? false;
     final progress = lesson['progress']?.toDouble() ?? 0.0;
@@ -651,22 +697,20 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
           backgroundColor: isCompleted
               ? Colors.green
               : isLocked
-                  ? Colors.grey
-                  : Colors.blue,
+              ? Colors.grey
+              : Colors.blue,
           child: Icon(
             isCompleted
                 ? Icons.check
                 : isLocked
-                    ? Icons.lock
-                    : Icons.play_arrow,
+                ? Icons.lock
+                : Icons.play_arrow,
             color: Colors.white,
           ),
         ),
         title: Text(
           lesson['title'],
-          style: TextStyle(
-            color: isLocked ? Colors.grey : null,
-          ),
+          style: TextStyle(color: isLocked ? Colors.grey : null),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -707,7 +751,9 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
   }
 
   Widget _buildGamesTab(
-      BuildContext context, StudentDashboardViewModel viewModel) {
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+  ) {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -724,15 +770,19 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
     );
   }
 
-  Widget _buildGameCard(BuildContext context,
-      StudentDashboardViewModel viewModel, Map<String, dynamic> game) {
+  Widget _buildGameCard(
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+    Map<String, dynamic> game,
+  ) {
     final isUnlocked = game['isUnlocked'] ?? true;
     final bestScore = game['bestScore'] ?? 0;
 
     return Card(
       child: InkWell(
-        onTap:
-            isUnlocked ? () => _playGame(context, viewModel, game['id']) : null,
+        onTap: isUnlocked
+            ? () => _playGame(context, viewModel, game['id'])
+            : null,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -753,15 +803,15 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
               Text(
                 game['title'],
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: isUnlocked ? null : Colors.grey,
-                    ),
+                  color: isUnlocked ? null : Colors.grey,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
                 game['description'],
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: isUnlocked ? null : Colors.grey,
-                    ),
+                  color: isUnlocked ? null : Colors.grey,
+                ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -790,7 +840,9 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
   }
 
   Widget _buildQuizTab(
-      BuildContext context, StudentDashboardViewModel viewModel) {
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+  ) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: viewModel.availableQuizzes.length,
@@ -801,8 +853,11 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
     );
   }
 
-  Widget _buildQuizCard(BuildContext context,
-      StudentDashboardViewModel viewModel, Map<String, dynamic> quiz) {
+  Widget _buildQuizCard(
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+    Map<String, dynamic> quiz,
+  ) {
     final isCompleted = quiz['isCompleted'] ?? false;
     final bestScore = quiz['bestScore']?.toDouble() ?? 0.0;
     final attempts = quiz['attempts'] ?? 0;
@@ -858,7 +913,9 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
   }
 
   Widget _buildProfileTab(
-      BuildContext context, StudentDashboardViewModel viewModel) {
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+  ) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -915,12 +972,8 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
                       children: [
                         Text(
                           '${viewModel.currentStreak}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium
-                              ?.copyWith(
-                                color: Colors.orange[700],
-                              ),
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(color: Colors.orange[700]),
                         ),
                         const Text('Jours de série'),
                       ],
@@ -936,12 +989,8 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
                       children: [
                         Text(
                           '${viewModel.totalExperience}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium
-                              ?.copyWith(
-                                color: Colors.blue[700],
-                              ),
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(color: Colors.blue[700]),
                         ),
                         const Text('Points XP'),
                       ],
@@ -970,14 +1019,16 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
                     spacing: 8,
                     runSpacing: 8,
                     children: viewModel.achievements
-                        .map((achievement) => Chip(
-                              avatar: Icon(
-                                _getAchievementIcon(achievement['type']),
-                                size: 16,
-                              ),
-                              label: Text(achievement['title']),
-                              backgroundColor: Colors.amber[100],
-                            ))
+                        .map(
+                          (achievement) => Chip(
+                            avatar: Icon(
+                              _getAchievementIcon(achievement['type']),
+                              size: 16,
+                            ),
+                            label: Text(achievement['title']),
+                            backgroundColor: Colors.amber[100],
+                          ),
+                        )
                         .toList(),
                   ),
                 ],
@@ -1070,7 +1121,9 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
 
   // Action methods
   void _showNotifications(
-      BuildContext context, StudentDashboardViewModel viewModel) {
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1082,11 +1135,13 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
               const Text('Aucune notification')
             else
               ...viewModel.notifications
-                  .map((notification) => ListTile(
-                        title: Text(notification['title']),
-                        subtitle: Text(notification['message']),
-                        trailing: Text(notification['time']),
-                      ))
+                  .map(
+                    (notification) => ListTile(
+                      title: Text(notification['title']),
+                      subtitle: Text(notification['message']),
+                      trailing: Text(notification['time']),
+                    ),
+                  )
                   .toList(),
           ],
         ),
@@ -1100,34 +1155,48 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
     );
   }
 
-  void _continueLearning(BuildContext context,
-      StudentDashboardViewModel viewModel, String languageCode) {
+  void _continueLearning(
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+    String languageCode,
+  ) {
     // TODO: Navigate to continue learning screen
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          content: Text(
-              'Continuer l\'apprentissage de ${SupportedLanguages.getDisplayName(languageCode)}')),
+        content: Text(
+          'Continuer l\'apprentissage de ${SupportedLanguages.getDisplayName(languageCode)}',
+        ),
+      ),
     );
   }
 
-  void _addLanguage(BuildContext context, StudentDashboardViewModel viewModel,
-      String languageCode) {
+  void _addLanguage(
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+    String languageCode,
+  ) {
     viewModel.startLearningLanguage(languageCode);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          content: Text(
-              'Apprentissage de ${SupportedLanguages.getDisplayName(languageCode)} commencé!')),
+        content: Text(
+          'Apprentissage de ${SupportedLanguages.getDisplayName(languageCode)} commencé!',
+        ),
+      ),
     );
   }
 
-  void _removeLanguage(BuildContext context,
-      StudentDashboardViewModel viewModel, String languageCode) {
+  void _removeLanguage(
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+    String languageCode,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirmer'),
         content: Text(
-            'Êtes-vous sûr de vouloir arrêter l\'apprentissage de ${SupportedLanguages.getDisplayName(languageCode)}?'),
+          'Êtes-vous sûr de vouloir arrêter l\'apprentissage de ${SupportedLanguages.getDisplayName(languageCode)}?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -1145,72 +1214,103 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
     );
   }
 
-  void _reviewLanguage(BuildContext context,
-      StudentDashboardViewModel viewModel, String languageCode) {
+  void _reviewLanguage(
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+    String languageCode,
+  ) {
     // TODO: Navigate to review screen
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          content: Text(
-              'Révision de ${SupportedLanguages.getDisplayName(languageCode)}')),
+        content: Text(
+          'Révision de ${SupportedLanguages.getDisplayName(languageCode)}',
+        ),
+      ),
     );
   }
 
-  void _startLesson(BuildContext context, StudentDashboardViewModel viewModel,
-      String languageCode) {
+  void _startLesson(
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+    String languageCode,
+  ) {
     // TODO: Navigate to lesson screen
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          content: Text(
-              'Démarrage d\'une leçon en ${SupportedLanguages.getDisplayName(languageCode)}')),
+        content: Text(
+          'Démarrage d\'une leçon en ${SupportedLanguages.getDisplayName(languageCode)}',
+        ),
+      ),
     );
   }
 
-  void _startGame(BuildContext context, StudentDashboardViewModel viewModel,
-      String languageCode) {
+  void _startGame(
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+    String languageCode,
+  ) {
     // TODO: Navigate to game screen
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          content: Text(
-              'Démarrage d\'un jeu en ${SupportedLanguages.getDisplayName(languageCode)}')),
+        content: Text(
+          'Démarrage d\'un jeu en ${SupportedLanguages.getDisplayName(languageCode)}',
+        ),
+      ),
     );
   }
 
-  void _startQuiz(BuildContext context, StudentDashboardViewModel viewModel,
-      String languageCode) {
+  void _startQuiz(
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+    String languageCode,
+  ) {
     // TODO: Navigate to quiz screen
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          content: Text(
-              'Démarrage d\'un quiz en ${SupportedLanguages.getDisplayName(languageCode)}')),
+        content: Text(
+          'Démarrage d\'un quiz en ${SupportedLanguages.getDisplayName(languageCode)}',
+        ),
+      ),
     );
   }
 
-  void _startLessonById(BuildContext context,
-      StudentDashboardViewModel viewModel, String lessonId) {
+  void _startLessonById(
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+    String lessonId,
+  ) {
     // TODO: Navigate to specific lesson
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Démarrage de la leçon $lessonId')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Démarrage de la leçon $lessonId')));
   }
 
-  void _playGame(BuildContext context, StudentDashboardViewModel viewModel,
-      String gameId) {
+  void _playGame(
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+    String gameId,
+  ) {
     // TODO: Navigate to specific game
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Lancement du jeu $gameId')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Lancement du jeu $gameId')));
   }
 
-  void _takeQuiz(BuildContext context, StudentDashboardViewModel viewModel,
-      String quizId) {
+  void _takeQuiz(
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+    String quizId,
+  ) {
     // TODO: Navigate to specific quiz
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Démarrage du quiz $quizId')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Démarrage du quiz $quizId')));
   }
 
   void _showLanguageSelector(
-      BuildContext context, StudentDashboardViewModel viewModel) {
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1240,13 +1340,15 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
 
   void _editProfile(BuildContext context, StudentDashboardViewModel viewModel) {
     // TODO: Navigate to edit profile screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Modification du profil')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Modification du profil')));
   }
 
   void _showLogoutDialog(
-      BuildContext context, StudentDashboardViewModel viewModel) {
+    BuildContext context,
+    StudentDashboardViewModel viewModel,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

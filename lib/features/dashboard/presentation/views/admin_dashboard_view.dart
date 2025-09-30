@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/supported_languages.dart';
+import '../../../../shared/widgets/user_guide_widget.dart';
 import '../viewmodels/admin_dashboard_viewmodel.dart';
 import '../widgets/admin_stats_widget.dart';
 import '../widgets/user_management_widget.dart';
@@ -88,27 +89,15 @@ class _AdminDashboardViewState extends State<AdminDashboardView>
           PopupMenuButton<String>(
             onSelected: (value) => _handleMenuAction(context, value),
             itemBuilder: (context) => const <PopupMenuEntry<String>>[
-              PopupMenuItem(
-                value: 'backup',
-                child: Text('Sauvegarde'),
-              ),
+              PopupMenuItem(value: 'backup', child: Text('Sauvegarde')),
               PopupMenuItem(
                 value: 'maintenance',
                 child: Text('Mode Maintenance'),
               ),
-              PopupMenuItem(
-                value: 'logs',
-                child: Text('Journaux Système'),
-              ),
-              PopupMenuItem(
-                value: 'settings',
-                child: Text('Paramètres'),
-              ),
+              PopupMenuItem(value: 'logs', child: Text('Journaux Système')),
+              PopupMenuItem(value: 'settings', child: Text('Paramètres')),
               PopupMenuDivider(),
-              PopupMenuItem(
-                value: 'logout',
-                child: Text('Déconnexion'),
-              ),
+              PopupMenuItem(value: 'logout', child: Text('Déconnexion')),
             ],
           ),
         ],
@@ -190,6 +179,14 @@ class _AdminDashboardViewState extends State<AdminDashboardView>
 
           // Platform statistics
           _buildPlatformStatistics(viewModel),
+          const SizedBox(height: AppDimensions.spacingLarge),
+
+          // User Guide
+          UserGuideWidget(
+            role: 'admin',
+            title: 'Guide Administrateur',
+            sections: UserGuideSections.getAdminGuide(),
+          ),
         ],
       ),
     );
@@ -347,8 +344,8 @@ class _AdminDashboardViewState extends State<AdminDashboardView>
             colors: viewModel.systemHealthScore > 0.8
                 ? [Colors.green.shade600, Colors.green.shade400]
                 : viewModel.systemHealthScore > 0.6
-                    ? [Colors.orange.shade600, Colors.orange.shade400]
-                    : [Colors.red.shade600, Colors.red.shade400],
+                ? [Colors.orange.shade600, Colors.orange.shade400]
+                : [Colors.red.shade600, Colors.red.shade400],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -372,8 +369,8 @@ class _AdminDashboardViewState extends State<AdminDashboardView>
                   viewModel.systemHealthScore > 0.8
                       ? Icons.check_circle
                       : viewModel.systemHealthScore > 0.6
-                          ? Icons.warning
-                          : Icons.error,
+                      ? Icons.warning
+                      : Icons.error,
                   color: Colors.white,
                   size: 28,
                 ),
@@ -412,10 +409,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView>
               children: [
                 const Text(
                   'Activités Administratives',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 TextButton(
                   onPressed: () => _viewAllActivities(context),
@@ -424,10 +418,13 @@ class _AdminDashboardViewState extends State<AdminDashboardView>
               ],
             ),
             const SizedBox(height: AppDimensions.spacingMedium),
-            ...viewModel.recentAdminActivities.take(5).map(
+            ...viewModel.recentAdminActivities
+                .take(5)
+                .map(
                   (activity) => Padding(
                     padding: const EdgeInsets.only(
-                        bottom: AppDimensions.spacingSmall),
+                      bottom: AppDimensions.spacingSmall,
+                    ),
                     child: Row(
                       children: [
                         Icon(
@@ -443,7 +440,8 @@ class _AdminDashboardViewState extends State<AdminDashboardView>
                               Text(
                                 activity['title'] as String,
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.w500),
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                               Text(
                                 '${activity['admin']} - ${activity['description']}',
@@ -508,10 +506,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView>
           children: [
             const Text(
               'Actions Administratives',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppDimensions.spacingMedium),
             GridView.builder(
@@ -528,17 +523,20 @@ class _AdminDashboardViewState extends State<AdminDashboardView>
                 final action = actions[index];
                 return InkWell(
                   onTap: action['action'] as VoidCallback,
-                  borderRadius:
-                      BorderRadius.circular(AppDimensions.borderRadius),
+                  borderRadius: BorderRadius.circular(
+                    AppDimensions.borderRadius,
+                  ),
                   child: Container(
                     padding: const EdgeInsets.all(AppDimensions.paddingMedium),
                     decoration: BoxDecoration(
                       color: (action['color'] as Color).withValues(alpha: 0.1),
-                      borderRadius:
-                          BorderRadius.circular(AppDimensions.borderRadius),
+                      borderRadius: BorderRadius.circular(
+                        AppDimensions.borderRadius,
+                      ),
                       border: Border.all(
-                        color:
-                            (action['color'] as Color).withValues(alpha: 0.3),
+                        color: (action['color'] as Color).withValues(
+                          alpha: 0.3,
+                        ),
                       ),
                     ),
                     child: Column(
@@ -580,10 +578,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView>
           children: [
             const Text(
               'Statistiques Plateforme',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppDimensions.spacingMedium),
             Row(
@@ -634,7 +629,11 @@ class _AdminDashboardViewState extends State<AdminDashboardView>
   }
 
   Widget _buildStatTile(
-      String title, String value, IconData icon, Color color) {
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       margin: const EdgeInsets.all(AppDimensions.spacingSmall / 2),
       padding: const EdgeInsets.all(AppDimensions.paddingMedium),
@@ -657,10 +656,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView>
           ),
           Text(
             title,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade600,
-            ),
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
             textAlign: TextAlign.center,
           ),
         ],
@@ -677,10 +673,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView>
           children: [
             const Text(
               'Analytiques Utilisateurs',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppDimensions.spacingLarge),
             Row(
@@ -713,7 +706,11 @@ class _AdminDashboardViewState extends State<AdminDashboardView>
   }
 
   Widget _buildUserMetric(
-      String title, String value, Color color, IconData icon) {
+    String title,
+    String value,
+    Color color,
+    IconData icon,
+  ) {
     return Column(
       children: [
         Container(
@@ -735,10 +732,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView>
         ),
         Text(
           title,
-          style: TextStyle(
-            fontSize: 10,
-            color: Colors.grey.shade600,
-          ),
+          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
           textAlign: TextAlign.center,
         ),
       ],
@@ -820,23 +814,23 @@ class _AdminDashboardViewState extends State<AdminDashboardView>
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppDimensions.spacingMedium),
-            ...SupportedLanguages.languages.entries.map(
-              (entry) {
-                final info = entry.value;
-                return Padding(
-                  padding:
-                      const EdgeInsets.only(bottom: AppDimensions.spacingSmall),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('${info.flag} ${info.name}'),
-                      Text(
-                          '${viewModel.getContentCountForLanguage(info.code)} éléments'),
-                    ],
-                  ),
-                );
-              },
-            ),
+            ...SupportedLanguages.languages.entries.map((entry) {
+              final info = entry.value;
+              return Padding(
+                padding: const EdgeInsets.only(
+                  bottom: AppDimensions.spacingSmall,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('${info.flag} ${info.name}'),
+                    Text(
+                      '${viewModel.getContentCountForLanguage(info.code)} éléments',
+                    ),
+                  ],
+                ),
+              );
+            }),
           ],
         ),
       ),
@@ -874,9 +868,11 @@ class _AdminDashboardViewState extends State<AdminDashboardView>
             ),
             const SizedBox(height: AppDimensions.spacingMedium),
             Text(
-                'Revenus mensuels: ${viewModel.monthlyRevenue.toStringAsFixed(0)} FCFA'),
+              'Revenus mensuels: ${viewModel.monthlyRevenue.toStringAsFixed(0)} FCFA',
+            ),
             Text(
-                'Revenus annuels: ${viewModel.yearlyRevenue.toStringAsFixed(0)} FCFA'),
+              'Revenus annuels: ${viewModel.yearlyRevenue.toStringAsFixed(0)} FCFA',
+            ),
           ],
         ),
       ),

@@ -24,14 +24,8 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeIn,
-      ),
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
     );
 
     _animationController.forward();
@@ -55,11 +49,25 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
 
     // Check if user is already authenticated
     if (authViewModel.isAuthenticated) {
-      context.go('/dashboard');
+      // Navigate to role-based dashboard
+      final userRole = authViewModel.currentUser?.role ?? 'learner';
+      switch (userRole.toLowerCase()) {
+        case 'admin':
+          context.go('/admin-dashboard');
+          break;
+        case 'teacher':
+        case 'instructor':
+          context.go('/teacher-dashboard');
+          break;
+        case 'learner':
+        case 'student':
+        default:
+          context.go('/dashboard');
+          break;
+      }
     } else {
-      // Check if onboarding is completed
-      // This would typically check SharedPreferences or a similar storage
-      context.go('/onboarding');
+      // Navigate to terms and conditions first, then onboarding
+      context.go('/terms-and-conditions');
     }
   }
 
@@ -73,7 +81,7 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // App logo or Lottie animation
+              // App logo
               Container(
                 width: 200,
                 height: 200,
@@ -81,10 +89,22 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(100),
                 ),
-                child: const Icon(
-                  Icons.language,
-                  size: 100,
-                  color: Colors.green,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(100),
+                  child: Image.asset(
+                    'assets/logo/logo.jpg',
+                    width: 200,
+                    height: 200,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      // Fallback to icon if image fails to load
+                      return const Icon(
+                        Icons.language,
+                        size: 100,
+                        color: Colors.green,
+                      );
+                    },
+                  ),
                 ),
               ),
 
@@ -94,10 +114,10 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
               Text(
                 'Mayègue',
                 style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 48,
-                    ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 48,
+                ),
               ),
 
               const SizedBox(height: 8),
@@ -106,8 +126,8 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
               Text(
                 'Langues Traditionnelles Camerounaises',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.9),
-                    ),
+                  color: Colors.white.withValues(alpha: 0.9),
+                ),
                 textAlign: TextAlign.center,
               ),
 

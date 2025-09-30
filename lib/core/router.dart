@@ -21,6 +21,9 @@ import '../features/payment/presentation/views/payment_processing_view.dart';
 import '../features/payment/presentation/views/payment_history_view.dart';
 import '../features/languages/presentation/views/languages_list_view.dart';
 import '../features/community/presentation/views/social_view.dart';
+import '../features/dashboard/presentation/views/admin_dashboard_view.dart';
+import '../features/dashboard/presentation/views/teacher_dashboard_view.dart';
+import '../features/dashboard/presentation/views/student_dashboard_view.dart';
 import 'constants/routes.dart';
 
 /// Global auth refresh notifier
@@ -53,15 +56,15 @@ class AppRouter {
         // Main app routes (will be protected by auth guard)
         GoRoute(
           path: Routes.dashboard,
-          builder: (context, state) => const _DashboardPlaceholder(),
+          builder: (context, state) => const StudentDashboardView(),
         ),
         GoRoute(
           path: Routes.adminDashboard,
-          builder: (context, state) => const _AdminDashboardPlaceholder(),
+          builder: (context, state) => const AdminDashboardView(),
         ),
         GoRoute(
           path: Routes.teacherDashboard,
-          builder: (context, state) => const _TeacherDashboardPlaceholder(),
+          builder: (context, state) => const TeacherDashboardView(),
         ),
         GoRoute(
           path: Routes.languages,
@@ -69,7 +72,8 @@ class AppRouter {
         ),
         GoRoute(
           path: Routes.home,
-          redirect: (context, state) => Routes.dashboard, // Redirect home to dashboard
+          redirect: (context, state) =>
+              Routes.dashboard, // Redirect home to dashboard
         ),
         GoRoute(
           path: Routes.courses,
@@ -146,15 +150,19 @@ class AppRouter {
         ),
       ],
       redirect: (context, state) {
-        final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+        final authViewModel = Provider.of<AuthViewModel>(
+          context,
+          listen: false,
+        );
         final isAuthenticated = authViewModel.isAuthenticated;
         final isOnboardingCompleted = authViewModel.isOnboardingCompleted;
         final currentUser = authViewModel.currentUser;
 
-        final isAuthRoute = state.matchedLocation == Routes.login ||
-                           state.matchedLocation == Routes.register ||
-                           state.matchedLocation == Routes.forgotPassword ||
-                           state.matchedLocation == Routes.phoneAuth;
+        final isAuthRoute =
+            state.matchedLocation == Routes.login ||
+            state.matchedLocation == Routes.register ||
+            state.matchedLocation == Routes.forgotPassword ||
+            state.matchedLocation == Routes.phoneAuth;
 
         final isSplashRoute = state.matchedLocation == Routes.splash;
         final isOnboardingRoute = state.matchedLocation == Routes.onboarding;
@@ -162,11 +170,15 @@ class AppRouter {
         final isLandingRoute = state.matchedLocation == Routes.landing;
 
         // Allow guest access to certain routes
-        final isGuestAllowedRoute = isAuthRoute || isSplashRoute || isTermsRoute ||
-                                   isLandingRoute || state.matchedLocation == Routes.dashboard ||
-                                   state.matchedLocation == Routes.languages ||
-                                   state.matchedLocation == Routes.dictionary ||
-                                   state.matchedLocation == Routes.courses;
+        final isGuestAllowedRoute =
+            isAuthRoute ||
+            isSplashRoute ||
+            isTermsRoute ||
+            isLandingRoute ||
+            state.matchedLocation == Routes.dashboard ||
+            state.matchedLocation == Routes.languages ||
+            state.matchedLocation == Routes.dictionary ||
+            state.matchedLocation == Routes.courses;
 
         // If not authenticated and trying to access protected route, redirect to landing
         if (!isAuthenticated && !isGuestAllowedRoute && !isOnboardingRoute) {
@@ -225,18 +237,7 @@ class _AuthRefreshListenable extends ChangeNotifier {
   }
 }
 
-/// Placeholder widgets for routes not yet implemented
-class _DashboardPlaceholder extends StatelessWidget {
-  const _DashboardPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text('Dashboard - Coming Soon')),
-    );
-  }
-}
-
+/// Placeholder widget for settings route
 class _SettingsPlaceholder extends StatelessWidget {
   const _SettingsPlaceholder();
 
@@ -245,30 +246,6 @@ class _SettingsPlaceholder extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: const Center(child: Text('Settings - Coming Soon')),
-    );
-  }
-}
-
-class _AdminDashboardPlaceholder extends StatelessWidget {
-  const _AdminDashboardPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Admin Dashboard')),
-      body: const Center(child: Text('Admin Dashboard - Coming Soon')),
-    );
-  }
-}
-
-class _TeacherDashboardPlaceholder extends StatelessWidget {
-  const _TeacherDashboardPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Teacher Dashboard')),
-      body: const Center(child: Text('Teacher Dashboard - Coming Soon')),
     );
   }
 }

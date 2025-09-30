@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/supported_languages.dart';
+import '../../../../shared/widgets/user_guide_widget.dart';
 import '../viewmodels/teacher_dashboard_viewmodel.dart';
 import '../widgets/teacher_stats_widget.dart';
 import '../widgets/student_progress_widget.dart';
@@ -55,22 +56,10 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
           PopupMenuButton<String>(
             onSelected: (value) => _handleMenuAction(context, value),
             itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'profile',
-                child: Text('Mon Profil'),
-              ),
-              const PopupMenuItem(
-                value: 'settings',
-                child: Text('Paramètres'),
-              ),
-              const PopupMenuItem(
-                value: 'help',
-                child: Text('Aide'),
-              ),
-              const PopupMenuItem(
-                value: 'logout',
-                child: Text('Déconnexion'),
-              ),
+              const PopupMenuItem(value: 'profile', child: Text('Mon Profil')),
+              const PopupMenuItem(value: 'settings', child: Text('Paramètres')),
+              const PopupMenuItem(value: 'help', child: Text('Aide')),
+              const PopupMenuItem(value: 'logout', child: Text('Déconnexion')),
             ],
           ),
         ],
@@ -149,6 +138,14 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
 
           // Language distribution
           _buildLanguageDistributionCard(viewModel),
+          const SizedBox(height: AppDimensions.spacingLarge),
+
+          // User Guide
+          UserGuideWidget(
+            role: 'teacher',
+            title: 'Guide Enseignant',
+            sections: UserGuideSections.getTeacherGuide(),
+          ),
         ],
       ),
     );
@@ -316,10 +313,7 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
               children: [
                 const Text(
                   'Activités Récentes',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 TextButton(
                   onPressed: () => _viewAllActivities(context),
@@ -328,10 +322,13 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
               ],
             ),
             const SizedBox(height: AppDimensions.spacingMedium),
-            ...viewModel.recentActivities.take(5).map(
+            ...viewModel.recentActivities
+                .take(5)
+                .map(
                   (activity) => Padding(
                     padding: const EdgeInsets.only(
-                        bottom: AppDimensions.spacingSmall),
+                      bottom: AppDimensions.spacingSmall,
+                    ),
                     child: Row(
                       children: [
                         Icon(
@@ -347,7 +344,8 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
                               Text(
                                 activity['title'] as String,
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.w500),
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                               Text(
                                 activity['description'] as String,
@@ -412,10 +410,7 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
           children: [
             const Text(
               'Actions Rapides',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppDimensions.spacingMedium),
             GridView.builder(
@@ -432,14 +427,16 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
                 final action = actions[index];
                 return InkWell(
                   onTap: action['action'] as VoidCallback,
-                  borderRadius:
-                      BorderRadius.circular(AppDimensions.borderRadius),
+                  borderRadius: BorderRadius.circular(
+                    AppDimensions.borderRadius,
+                  ),
                   child: Container(
                     padding: const EdgeInsets.all(AppDimensions.paddingMedium),
                     decoration: BoxDecoration(
                       color: (action['color'] as Color).withValues(alpha: 25),
-                      borderRadius:
-                          BorderRadius.circular(AppDimensions.borderRadius),
+                      borderRadius: BorderRadius.circular(
+                        AppDimensions.borderRadius,
+                      ),
                       border: Border.all(
                         color: (action['color'] as Color).withValues(alpha: 76),
                       ),
@@ -482,56 +479,52 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
           children: [
             const Text(
               'Répartition par Langue',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppDimensions.spacingMedium),
-            ...viewModel.languageDistribution.entries.map(
-              (entry) {
-                final language = entry.key;
-                final count = entry.value;
-                final info = SupportedLanguages.getLanguageInfo(language);
+            ...viewModel.languageDistribution.entries.map((entry) {
+              final language = entry.key;
+              final count = entry.value;
+              final info = SupportedLanguages.getLanguageInfo(language);
 
-                return Padding(
-                  padding:
-                      const EdgeInsets.only(bottom: AppDimensions.spacingSmall),
-                  child: Row(
-                    children: [
-                      Text(
-                        info?.flag ?? '🇨🇲',
-                        style: const TextStyle(fontSize: 20),
-                      ),
-                      const SizedBox(width: AppDimensions.spacingMedium),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              info?.name ?? language,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.w500),
+              return Padding(
+                padding: const EdgeInsets.only(
+                  bottom: AppDimensions.spacingSmall,
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      info?.flag ?? '🇨🇲',
+                      style: const TextStyle(fontSize: 20),
+                    ),
+                    const SizedBox(width: AppDimensions.spacingMedium),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            info?.name ?? language,
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          LinearProgressIndicator(
+                            value: count / viewModel.totalStudents,
+                            backgroundColor: Colors.grey.shade300,
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                              Colors.indigo,
                             ),
-                            LinearProgressIndicator(
-                              value: count / viewModel.totalStudents,
-                              backgroundColor: Colors.grey.shade300,
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                  Colors.indigo),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: AppDimensions.spacingMedium),
-                      Text(
-                        '$count étudiants',
-                        style: const TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
+                    ),
+                    const SizedBox(width: AppDimensions.spacingMedium),
+                    Text(
+                      '$count étudiants',
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+              );
+            }),
           ],
         ),
       ),
@@ -570,10 +563,7 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
                   value: 'struggling',
                   child: Text('En difficulté'),
                 ),
-                const PopupMenuItem(
-                  value: 'advanced',
-                  child: Text('Avancés'),
-                ),
+                const PopupMenuItem(value: 'advanced', child: Text('Avancés')),
               ],
             ),
           ],
@@ -591,10 +581,7 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
           children: [
             const Text(
               'Performance de la Classe',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppDimensions.spacingMedium),
             Row(
@@ -627,7 +614,11 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
   }
 
   Widget _buildPerformanceMetric(
-      String title, String value, Color color, IconData icon) {
+    String title,
+    String value,
+    Color color,
+    IconData icon,
+  ) {
     return Column(
       children: [
         Container(
@@ -649,10 +640,7 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
         ),
         Text(
           title,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey.shade600,
-          ),
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
           textAlign: TextAlign.center,
         ),
       ],
@@ -671,10 +659,7 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
               children: [
                 const Text(
                   'Bibliothèque de Contenu',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 TextButton(
                   onPressed: () => _viewContentLibrary(context),
@@ -687,11 +672,17 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildContentCount(
-                    'Leçons', viewModel.lessonsCount, Icons.book),
+                  'Leçons',
+                  viewModel.lessonsCount,
+                  Icons.book,
+                ),
                 _buildContentCount('Jeux', viewModel.gamesCount, Icons.games),
                 _buildContentCount('Quiz', viewModel.quizzesCount, Icons.quiz),
                 _buildContentCount(
-                    'Médias', viewModel.mediaCount, Icons.perm_media),
+                  'Médias',
+                  viewModel.mediaCount,
+                  Icons.perm_media,
+                ),
               ],
             ),
           ],
@@ -715,10 +706,7 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
         ),
         Text(
           title,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey.shade600,
-          ),
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
         ),
       ],
     );
@@ -760,10 +748,7 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
           children: [
             const Text(
               'Outils Pédagogiques',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppDimensions.spacingMedium),
             GridView.builder(
@@ -780,14 +765,16 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
                 final tool = tools[index];
                 return InkWell(
                   onTap: tool['action'] as VoidCallback,
-                  borderRadius:
-                      BorderRadius.circular(AppDimensions.borderRadius),
+                  borderRadius: BorderRadius.circular(
+                    AppDimensions.borderRadius,
+                  ),
                   child: Container(
                     padding: const EdgeInsets.all(AppDimensions.paddingMedium),
                     decoration: BoxDecoration(
                       color: (tool['color'] as Color).withValues(alpha: 25),
-                      borderRadius:
-                          BorderRadius.circular(AppDimensions.borderRadius),
+                      borderRadius: BorderRadius.circular(
+                        AppDimensions.borderRadius,
+                      ),
                       border: Border.all(
                         color: (tool['color'] as Color).withValues(alpha: 76),
                       ),
@@ -835,10 +822,7 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
                 SizedBox(width: AppDimensions.spacingMedium),
                 Text(
                   'Assistant IA Éducatif',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -929,9 +913,9 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
 
   void _handleMenuAction(BuildContext context, String action) {
     // TODO: Implement menu actions
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$action - À implémenter')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('$action - À implémenter')));
   }
 
   void _showQuickActions(BuildContext context) {
@@ -951,12 +935,21 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
               shrinkWrap: true,
               crossAxisCount: 3,
               children: [
-                _buildQuickAction('Nouvelle\nLeçon', Icons.book,
-                    () => _createNewLesson(context)),
                 _buildQuickAction(
-                    'Nouveau\nJeu', Icons.games, () => _createNewGame(context)),
-                _buildQuickAction('Message\nGroupe', Icons.group,
-                    () => _sendGroupMessage(context)),
+                  'Nouvelle\nLeçon',
+                  Icons.book,
+                  () => _createNewLesson(context),
+                ),
+                _buildQuickAction(
+                  'Nouveau\nJeu',
+                  Icons.games,
+                  () => _createNewGame(context),
+                ),
+                _buildQuickAction(
+                  'Message\nGroupe',
+                  Icons.group,
+                  () => _sendGroupMessage(context),
+                ),
               ],
             ),
           ],
@@ -1003,15 +996,16 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
   }
 
   void _openMessaging(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Messagerie - À implémenter')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Messagerie - À implémenter')));
   }
 
   void _viewStudentDetails(BuildContext context, Map<String, dynamic> student) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          content: Text('Détails étudiant ${student['name']} - À implémenter')),
+        content: Text('Détails étudiant ${student['name']} - À implémenter'),
+      ),
     );
   }
 
@@ -1077,9 +1071,9 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
   }
 
   void _openAIChat(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Chat IA - À implémenter')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Chat IA - À implémenter')));
   }
 
   void _sendGroupMessage(BuildContext context) {

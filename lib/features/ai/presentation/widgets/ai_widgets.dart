@@ -206,8 +206,8 @@ class _MessageInputArea extends StatefulWidget {
 class _MessageInputAreaState extends State<_MessageInputArea> {
   // late stt.SpeechToText _speech;  // Temporarily disabled
   late FlutterTts _flutterTts;
-  bool _isListening = false;
-  String _lastWords = '';
+  final bool _isListening = false;
+  // String _lastWords = '';  // Temporarily disabled with speech-to-text
 
   @override
   void initState() {

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 // import 'package:record/record.dart';  // Temporarily disabled
 import 'package:audioplayers/audioplayers.dart';
-import 'package:path_provider/path_provider.dart';
+// import 'package:path_provider/path_provider.dart';  // Temporarily disabled with recording
 import 'package:permission_handler/permission_handler.dart';
 
 /// Service for audio recording and playback functionality
@@ -12,10 +12,10 @@ class AudioService extends ChangeNotifier {
   final AudioPlayer _player = AudioPlayer();
 
   String? _currentRecordingPath;
-  bool _isRecording = false;
+  final bool _isRecording = false;
   bool _isPlaying = false;
   bool _isPaused = false;
-  Duration _recordingDuration = Duration.zero;
+  final Duration _recordingDuration = Duration.zero;
   Duration _playbackPosition = Duration.zero;
   Duration _playbackDuration = Duration.zero;
 
@@ -297,11 +297,12 @@ class AudioService extends ChangeNotifier {
   }
 
   /// Generate unique recording file path
-  Future<String> _generateRecordingPath() async {
-    final directory = await getApplicationDocumentsDirectory();
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    return '${directory.path}/recording_$timestamp.aac';
-  }
+  // Temporarily disabled - recording functionality is disabled
+  // Future<String> _generateRecordingPath() async {
+  //   final directory = await getApplicationDocumentsDirectory();
+  //   final timestamp = DateTime.now().millisecondsSinceEpoch;
+  //   return '${directory.path}/recording_$timestamp.aac';
+  // }
 
   /// Get recording quality settings
   // RecordingQuality getRecordingQuality(AudioQuality quality) {  // Temporarily disabled
