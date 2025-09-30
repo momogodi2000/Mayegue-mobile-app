@@ -33,7 +33,7 @@ dependencies:
   # 🎵 Multimédia
   audioplayers: ^6.5.1
   video_player: ^2.9.1
-  # record: ^4.4.4  # Temporarily disabled due to build issues
+  # record: ^5.1.2  # Temporarily disabled due to record_linux compatibility issues
   path_provider: ^2.1.4
   image_picker: ^1.1.2
   flutter_image_compress: ^2.3.0

@@ -32,9 +32,18 @@ import '../../features/onboarding/data/repositories/onboarding_repository_impl.d
 import '../../features/onboarding/domain/usecases/complete_onboarding_usecase.dart';
 import '../../features/onboarding/domain/usecases/get_onboarding_status_usecase.dart';
 import '../../features/onboarding/presentation/viewmodels/onboarding_viewmodel.dart';
+import '../providers/theme_provider.dart';
+import '../../features/dashboard/presentation/viewmodels/student_dashboard_viewmodel.dart';
+import '../../features/dashboard/presentation/viewmodels/admin_dashboard_viewmodel.dart';
+import '../../features/dashboard/presentation/viewmodels/teacher_dashboard_viewmodel.dart';
 
 /// List of all providers for the application
 List<SingleChildWidget> appProviders = [
+  // Theme Provider
+  ChangeNotifierProvider<ThemeProvider>(
+    create: (_) => ThemeProvider(),
+  ),
+
   // Core services
   Provider<EnvironmentConfig>(
     create: (_) => EnvironmentConfig(),
@@ -161,6 +170,17 @@ List<SingleChildWidget> appProviders = [
       completeOnboardingUsecase: complete,
       getOnboardingStatusUsecase: getStatus,
     ),
+  ),
+
+  // Dashboard ViewModels
+  ChangeNotifierProvider<StudentDashboardViewModel>(
+    create: (_) => StudentDashboardViewModel(),
+  ),
+  ChangeNotifierProvider<AdminDashboardViewModel>(
+    create: (_) => AdminDashboardViewModel(),
+  ),
+  ChangeNotifierProvider<TeacherDashboardViewModel>(
+    create: (_) => TeacherDashboardViewModel(),
   ),
 ];
 
