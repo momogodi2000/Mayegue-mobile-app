@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../viewmodels/student_dashboard_viewmodel.dart';
 import '../../../../shared/widgets/layouts/app_scaffold.dart';
 import '../../../../shared/widgets/user_guide_widget.dart';
 import '../../../../core/constants/supported_languages.dart';
+import '../../../../core/constants/routes.dart';
 
 class StudentDashboardView extends StatefulWidget {
   const StudentDashboardView({super.key});
@@ -86,6 +88,26 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
               IconButton(
                 icon: const Icon(Icons.refresh),
                 onPressed: () => viewModel.refreshDashboard(),
+              ),
+              PopupMenuButton<String>(
+                onSelected: (value) => _handleMenuAction(context, value),
+                itemBuilder: (context) => const [
+                  PopupMenuItem(
+                    value: 'guide',
+                    child: Row(
+                      children: [
+                        Icon(Icons.help_outline),
+                        SizedBox(width: 8),
+                        Text('Guide Apprenant'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuDivider(),
+                  PopupMenuItem(value: 'profile', child: Text('Mon Profil')),
+                  PopupMenuItem(value: 'settings', child: Text('Paramètres')),
+                  PopupMenuDivider(),
+                  PopupMenuItem(value: 'logout', child: Text('Déconnexion')),
+                ],
               ),
             ],
             bottom: TabBar(
@@ -1363,12 +1385,30 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
             onPressed: () {
               Navigator.of(context).pop();
               viewModel.logout();
-              // TODO: Navigate to login screen
+              context.go(Routes.login);
             },
             child: const Text('Se déconnecter'),
           ),
         ],
       ),
     );
+  }
+
+  void _handleMenuAction(BuildContext context, String action) {
+    switch (action) {
+      case 'guide':
+        context.push(Routes.studentGuide);
+        break;
+      case 'profile':
+        context.push(Routes.profile);
+        break;
+      case 'logout':
+        _showLogoutDialog(context, context.read<StudentDashboardViewModel>());
+        break;
+      default:
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$action - À implémenter')));
+    }
   }
 }

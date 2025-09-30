@@ -40,36 +40,23 @@ import '../../features/dashboard/presentation/viewmodels/teacher_dashboard_viewm
 /// List of all providers for the application
 List<SingleChildWidget> appProviders = [
   // Theme Provider
-  ChangeNotifierProvider<ThemeProvider>(
-    create: (_) => ThemeProvider(),
-  ),
+  ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
 
   // Core services
-  Provider<EnvironmentConfig>(
-    create: (_) => EnvironmentConfig(),
-  ),
-  Provider<FirebaseService>(
-    create: (_) => FirebaseService(),
-  ),
-  Provider<StorageService>(
-    create: (_) => StorageService(),
-  ),
-  Provider<DatabaseHelper>(
-    create: (_) => DatabaseHelper.instance,
-  ),
+  Provider<EnvironmentConfig>(create: (_) => EnvironmentConfig()),
+  Provider<FirebaseService>(create: (_) => FirebaseService()),
+  Provider<StorageService>(create: (_) => StorageService()),
+  Provider<DatabaseHelper>(create: (_) => DatabaseHelper.instance),
   Provider<GeneralSyncManager>(
     create: (_) => GeneralSyncManager(networkInfo: NetworkInfo(Connectivity())),
   ),
   Provider<AIService>(
     create: (_) => GeminiAIService(
-        apiKey: 'your-gemini-api-key'), // TODO: Move to environment config
+      apiKey: 'your-gemini-api-key',
+    ), // TODO: Move to environment config
   ),
-  Provider<DioClient>(
-    create: (_) => DioClient(),
-  ),
-  Provider<NetworkInfo>(
-    create: (_) => NetworkInfo(Connectivity()),
-  ),
+  Provider<DioClient>(create: (_) => DioClient()),
+  Provider<NetworkInfo>(create: (_) => NetworkInfo(Connectivity())),
 
   // SharedPreferences
   Provider<Future<SharedPreferences>>(
@@ -77,9 +64,7 @@ List<SingleChildWidget> appProviders = [
   ),
 
   // Connectivity instance
-  Provider<Connectivity>(
-    create: (_) => Connectivity(),
-  ),
+  Provider<Connectivity>(create: (_) => Connectivity()),
 
   // Connectivity stream
   ProxyProvider<Connectivity, Stream<ConnectivityResult>>(
@@ -88,20 +73,24 @@ List<SingleChildWidget> appProviders = [
 
   // Authentication providers
   ProxyProvider<FirebaseService, AuthRemoteDataSource>(
-    update: (_, firebaseService, __) => AuthRemoteDataSourceImpl(firebaseService),
+    update: (_, firebaseService, __) =>
+        AuthRemoteDataSourceImpl(firebaseService),
   ),
-  Provider<AuthLocalDataSource>(
-    create: (_) => AuthLocalDataSourceImpl(),
-  ),
-  ProxyProvider4<AuthRemoteDataSource, AuthLocalDataSource, Connectivity,
-      GeneralSyncManager, AuthRepository>(
+  Provider<AuthLocalDataSource>(create: (_) => AuthLocalDataSourceImpl()),
+  ProxyProvider4<
+    AuthRemoteDataSource,
+    AuthLocalDataSource,
+    Connectivity,
+    GeneralSyncManager,
+    AuthRepository
+  >(
     update: (_, remote, local, connectivity, syncManager, __) =>
         AuthRepositoryImpl(
-      remoteDataSource: remote,
-      localDataSource: local,
-      connectivity: connectivity,
-      syncManager: syncManager,
-    ),
+          remoteDataSource: remote,
+          localDataSource: local,
+          connectivity: connectivity,
+          syncManager: syncManager,
+        ),
   ),
   ProxyProvider<AuthRepository, LoginUsecase>(
     update: (_, repository, __) => LoginUsecase(repository),
@@ -136,22 +125,59 @@ List<SingleChildWidget> appProviders = [
   ProxyProvider<AuthRepository, ForgotPasswordUsecase>(
     update: (_, repository, __) => ForgotPasswordUsecase(repository),
   ),
-  ChangeNotifierProvider<AuthViewModel>(
-    create: (context) => AuthViewModel(
-      loginUsecase: context.read<LoginUsecase>(),
-      registerUsecase: context.read<RegisterUsecase>(),
-      logoutUsecase: context.read<LogoutUsecase>(),
-      resetPasswordUsecase: context.read<ResetPasswordUsecase>(),
-      getCurrentUserUsecase: context.read<GetCurrentUserUsecase>(),
-      googleSignInUsecase: context.read<GoogleSignInUsecase>(),
-      facebookSignInUsecase: context.read<FacebookSignInUsecase>(),
-      appleSignInUsecase: context.read<AppleSignInUsecase>(),
-      forgotPasswordUsecase: context.read<ForgotPasswordUsecase>(),
-      getOnboardingStatusUsecase: context.read<GetOnboardingStatusUsecase>(),
-      signInWithPhoneNumberUsecase:
-          context.read<SignInWithPhoneNumberUsecase>(),
-      verifyPhoneNumberUsecase: context.read<VerifyPhoneNumberUsecase>(),
-    ),
+  ChangeNotifierProxyProvider2<
+    AuthRepository,
+    OnboardingRepository,
+    AuthViewModel
+  >(
+    create: (context) {
+      // Create all usecases from repositories
+      final authRepo = AuthRepositoryImpl(
+        remoteDataSource: AuthRemoteDataSourceImpl(FirebaseService()),
+        localDataSource: AuthLocalDataSourceImpl(),
+        connectivity: Connectivity(),
+        syncManager: GeneralSyncManager(
+          networkInfo: NetworkInfo(Connectivity()),
+        ),
+      );
+      final onboardingRepo = OnboardingRepositoryImpl(
+        OnboardingLocalDataSourceImpl(),
+      );
+
+      return AuthViewModel(
+        loginUsecase: LoginUsecase(authRepo),
+        registerUsecase: RegisterUsecase(authRepo),
+        logoutUsecase: LogoutUsecase(authRepo),
+        resetPasswordUsecase: ResetPasswordUsecase(authRepo),
+        getCurrentUserUsecase: GetCurrentUserUsecase(authRepo),
+        googleSignInUsecase: GoogleSignInUsecase(authRepo),
+        facebookSignInUsecase: FacebookSignInUsecase(authRepo),
+        appleSignInUsecase: AppleSignInUsecase(authRepo),
+        forgotPasswordUsecase: ForgotPasswordUsecase(authRepo),
+        getOnboardingStatusUsecase: GetOnboardingStatusUsecase(onboardingRepo),
+        signInWithPhoneNumberUsecase: SignInWithPhoneNumberUsecase(authRepo),
+        verifyPhoneNumberUsecase: VerifyPhoneNumberUsecase(authRepo),
+      );
+    },
+    update: (context, authRepo, onboardingRepo, previous) {
+      // Return existing instance if available, otherwise create new
+      if (previous != null) return previous;
+
+      return AuthViewModel(
+        loginUsecase: LoginUsecase(authRepo),
+        registerUsecase: RegisterUsecase(authRepo),
+        logoutUsecase: LogoutUsecase(authRepo),
+        resetPasswordUsecase: ResetPasswordUsecase(authRepo),
+        getCurrentUserUsecase: GetCurrentUserUsecase(authRepo),
+        googleSignInUsecase: GoogleSignInUsecase(authRepo),
+        facebookSignInUsecase: FacebookSignInUsecase(authRepo),
+        appleSignInUsecase: AppleSignInUsecase(authRepo),
+        forgotPasswordUsecase: ForgotPasswordUsecase(authRepo),
+        getOnboardingStatusUsecase: GetOnboardingStatusUsecase(onboardingRepo),
+        signInWithPhoneNumberUsecase: SignInWithPhoneNumberUsecase(authRepo),
+        verifyPhoneNumberUsecase: VerifyPhoneNumberUsecase(authRepo),
+      );
+    },
   ),
 
   // Onboarding providers
@@ -168,8 +194,11 @@ List<SingleChildWidget> appProviders = [
   ProxyProvider<OnboardingRepository, GetOnboardingStatusUsecase>(
     update: (_, repository, __) => GetOnboardingStatusUsecase(repository),
   ),
-  ProxyProvider2<CompleteOnboardingUsecase, GetOnboardingStatusUsecase,
-      OnboardingViewModel>(
+  ProxyProvider2<
+    CompleteOnboardingUsecase,
+    GetOnboardingStatusUsecase,
+    OnboardingViewModel
+  >(
     update: (_, complete, getStatus, __) => OnboardingViewModel(
       completeOnboardingUsecase: complete,
       getOnboardingStatusUsecase: getStatus,

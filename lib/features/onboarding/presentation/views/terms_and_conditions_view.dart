@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Terms and Conditions page that users must accept before proceeding
 class TermsAndConditionsView extends StatefulWidget {
@@ -19,29 +20,37 @@ class _TermsAndConditionsViewState extends State<TermsAndConditionsView> {
     super.dispose();
   }
 
-  void _onAcceptTerms() {
+  void _onAcceptTerms() async {
     if (_acceptedTerms) {
       // Store acceptance in SharedPreferences
-      _storeTermsAcceptance();
-      // Navigate to language selection for proper onboarding flow
-      context.go('/language-selection');
+      await _storeTermsAcceptance();
+      // Navigate to landing page for proper onboarding flow
+      if (mounted) {
+        context.go('/landing');
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content:
-              Text('Veuillez accepter les termes et conditions pour continuer'),
+          content: Text(
+            'Veuillez accepter les termes et conditions pour continuer',
+          ),
         ),
       );
     }
   }
 
-  void _storeTermsAcceptance() {
-    // This would typically use SharedPreferences to persist the acceptance
-    // For now, we'll simulate this
-    // SharedPreferences.getInstance().then((prefs) {
-    //   prefs.setBool('terms_accepted', true);
-    //   prefs.setString('terms_accepted_date', DateTime.now().toIso8601String());
-    // });
+  Future<void> _storeTermsAcceptance() async {
+    // Store terms acceptance in SharedPreferences
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('terms_accepted', true);
+      await prefs.setString(
+        'terms_accepted_date',
+        DateTime.now().toIso8601String(),
+      );
+    } catch (e) {
+      debugPrint('Error storing terms acceptance: $e');
+    }
   }
 
   @override
@@ -74,23 +83,21 @@ class _TermsAndConditionsViewState extends State<TermsAndConditionsView> {
                     const SizedBox(height: 16),
                     Text(
                       'Termes et Conditions d\'Utilisation',
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onPrimaryContainer,
-                              ),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
+                          ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Mayègue - Application d\'Apprentissage des Langues Camerounaises',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onPrimaryContainer,
-                          ),
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -214,7 +221,8 @@ class _TermsAndConditionsViewState extends State<TermsAndConditionsView> {
                           builder: (context) => AlertDialog(
                             title: const Text('Quitter Mayegue'),
                             content: const Text(
-                                'Êtes-vous sûr de vouloir quitter l\'application ?'),
+                              'Êtes-vous sûr de vouloir quitter l\'application ?',
+                            ),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.of(context).pop(),
@@ -243,8 +251,9 @@ class _TermsAndConditionsViewState extends State<TermsAndConditionsView> {
                     child: ElevatedButton(
                       onPressed: _acceptedTerms ? _onAcceptTerms : null,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            _acceptedTerms ? Colors.green : Colors.grey,
+                        backgroundColor: _acceptedTerms
+                            ? Colors.green
+                            : Colors.grey,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -270,19 +279,10 @@ class _TermsAndConditionsViewState extends State<TermsAndConditionsView> {
         children: [
           Text(
             title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          Text(
-            content,
-            style: const TextStyle(
-              fontSize: 14,
-              height: 1.5,
-            ),
-          ),
+          Text(content, style: const TextStyle(fontSize: 14, height: 1.5)),
         ],
       ),
     );

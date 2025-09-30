@@ -30,4 +30,7 @@ class Routes {
   static const String payment = '/payment';
   static const String certificates = '/certificates';
   static const String settings = '/settings';
+  static const String adminGuide = '/admin-guide';
+  static const String teacherGuide = '/teacher-guide';
+  static const String studentGuide = '/student-guide';
 }

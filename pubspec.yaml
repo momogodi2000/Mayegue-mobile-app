@@ -117,7 +117,7 @@ flutter:
   # flutter gen-l10n
   # flutter pub run intl_utils:generate
 
-flutter_icons:
+flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/logo/logo.jpg"

@@ -24,6 +24,9 @@ import '../features/community/presentation/views/social_view.dart';
 import '../features/dashboard/presentation/views/admin_dashboard_view.dart';
 import '../features/dashboard/presentation/views/teacher_dashboard_view.dart';
 import '../features/dashboard/presentation/views/student_dashboard_view.dart';
+import '../features/guides/presentation/views/admin_guide_view.dart';
+import '../features/guides/presentation/views/teacher_guide_view.dart';
+import '../features/guides/presentation/views/student_guide_view.dart';
 import 'constants/routes.dart';
 
 /// Global auth refresh notifier
@@ -129,6 +132,20 @@ class AppRouter {
         GoRoute(
           path: Routes.settings,
           builder: (context, state) => const _SettingsPlaceholder(),
+        ),
+
+        // User Guides
+        GoRoute(
+          path: Routes.adminGuide,
+          builder: (context, state) => const AdminGuideView(),
+        ),
+        GoRoute(
+          path: Routes.teacherGuide,
+          builder: (context, state) => const TeacherGuideView(),
+        ),
+        GoRoute(
+          path: Routes.studentGuide,
+          builder: (context, state) => const StudentGuideView(),
         ),
 
         // Splash and initial flow

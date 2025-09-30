@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/supported_languages.dart';
+import '../../../../core/constants/routes.dart';
 import '../../../../shared/widgets/user_guide_widget.dart';
 import '../viewmodels/teacher_dashboard_viewmodel.dart';
 import '../widgets/teacher_stats_widget.dart';
@@ -55,11 +57,23 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
           ),
           PopupMenuButton<String>(
             onSelected: (value) => _handleMenuAction(context, value),
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: 'profile', child: Text('Mon Profil')),
-              const PopupMenuItem(value: 'settings', child: Text('Paramètres')),
-              const PopupMenuItem(value: 'help', child: Text('Aide')),
-              const PopupMenuItem(value: 'logout', child: Text('Déconnexion')),
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: 'guide',
+                child: Row(
+                  children: [
+                    Icon(Icons.help_outline),
+                    SizedBox(width: 8),
+                    Text('Guide Enseignant'),
+                  ],
+                ),
+              ),
+              PopupMenuDivider(),
+              PopupMenuItem(value: 'profile', child: Text('Mon Profil')),
+              PopupMenuItem(value: 'settings', child: Text('Paramètres')),
+              PopupMenuItem(value: 'help', child: Text('Aide')),
+              PopupMenuDivider(),
+              PopupMenuItem(value: 'logout', child: Text('Déconnexion')),
             ],
           ),
         ],
@@ -912,10 +926,18 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
   }
 
   void _handleMenuAction(BuildContext context, String action) {
-    // TODO: Implement menu actions
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('$action - À implémenter')));
+    switch (action) {
+      case 'guide':
+        context.push(Routes.teacherGuide);
+        break;
+      case 'logout':
+        context.go(Routes.login);
+        break;
+      default:
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$action - À implémenter')));
+    }
   }
 
   void _showQuickActions(BuildContext context) {

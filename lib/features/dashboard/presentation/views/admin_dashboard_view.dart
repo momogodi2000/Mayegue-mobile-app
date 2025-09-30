@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/supported_languages.dart';
+import '../../../../core/constants/routes.dart';
 import '../../../../shared/widgets/user_guide_widget.dart';
 import '../viewmodels/admin_dashboard_viewmodel.dart';
 import '../widgets/admin_stats_widget.dart';
@@ -89,6 +91,17 @@ class _AdminDashboardViewState extends State<AdminDashboardView>
           PopupMenuButton<String>(
             onSelected: (value) => _handleMenuAction(context, value),
             itemBuilder: (context) => const <PopupMenuEntry<String>>[
+              PopupMenuItem(
+                value: 'guide',
+                child: Row(
+                  children: [
+                    Icon(Icons.help_outline),
+                    SizedBox(width: 8),
+                    Text('Guide Administrateur'),
+                  ],
+                ),
+              ),
+              PopupMenuDivider(),
               PopupMenuItem(value: 'backup', child: Text('Sauvegarde')),
               PopupMenuItem(
                 value: 'maintenance',
@@ -1110,9 +1123,19 @@ class _AdminDashboardViewState extends State<AdminDashboardView>
   }
 
   void _handleMenuAction(BuildContext context, String action) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Action admin: $action - À implémenter')),
-    );
+    switch (action) {
+      case 'guide':
+        context.push(Routes.adminGuide);
+        break;
+      case 'logout':
+        // Handle logout
+        context.go(Routes.login);
+        break;
+      default:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Action admin: $action - À implémenter')),
+        );
+    }
   }
 
   void _showAdminActions(BuildContext context) {
