@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.mayegue"
+    namespace = "com.mayegue.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973"
 
