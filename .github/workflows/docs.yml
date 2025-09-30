@@ -1,0 +1,117 @@
+name: Documentation
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'lib/**'
+      - 'docs/**'
+      - '*.md'
+  workflow_dispatch:
+
+jobs:
+  # Generate and update documentation
+  generate-docs:
+    name: Generate Documentation
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+
+    - name: Cache Flutter dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.pub-cache
+          ${{ runner.tool_cache }}/flutter
+        key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          flutter-${{ runner.os }}-
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Generate Dart documentation
+      run: |
+        flutter pub global activate dartdoc
+        flutter pub global run dartdoc
+
+    - name: Setup Node.js for documentation tools
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install documentation tools
+      run: |
+        npm install -g markdown-toc
+        npm install -g markdownlint-cli
+
+    - name: Update table of contents in README
+      run: |
+        if [ -f README.md ]; then
+          markdown-toc -i README.md
+        fi
+
+    - name: Lint markdown files
+      run: |
+        find . -name "*.md" -not -path "./.git/*" -exec markdownlint {} \;
+
+    - name: Check documentation links
+      run: |
+        npm install -g markdown-link-check
+        find docs -name "*.md" -exec markdown-link-check {} \; || true
+
+    - name: Commit documentation updates
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add -A
+        if git diff --staged --quiet; then
+          echo "No documentation changes to commit"
+        else
+          git commit -m "docs: update documentation [skip ci]"
+          git push
+        fi
+
+  # Update API documentation
+  update-api-docs:
+    name: Update API Documentation
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Generate API documentation
+      run: |
+        # Generate API documentation for Firebase functions if any
+        if [ -d "functions" ]; then
+          cd functions
+          npm install
+          npm run docs || echo "No docs script found"
+        fi
+
+    - name: Deploy documentation to GitHub Pages
+      if: github.ref == 'refs/heads/main'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./doc/api
+        destination_dir: api-docs
+        keep_files: true

@@ -1,0 +1,83 @@
+name: Code Coverage
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  # Generate and report code coverage
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+
+    - name: Cache Flutter dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.pub-cache
+          ${{ runner.tool_cache }}/flutter
+        key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          flutter-${{ runner.os }}-
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Install lcov
+      run: sudo apt-get update && sudo apt-get install -y lcov
+
+    - name: Run tests with coverage
+      run: flutter test --coverage
+
+    - name: Generate LCOV report
+      run: |
+        # Remove generated files from coverage
+        lcov --remove coverage/lcov.info 'lib/**/*.g.dart' 'lib/**/*.freezed.dart' -o coverage/lcov.info
+
+        # Generate HTML report
+        genhtml coverage/lcov.info -o coverage/html
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+    - name: Upload HTML coverage report
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: coverage/html/
+
+    - name: Comment coverage on PR
+      if: github.event_name == 'pull_request'
+      uses: dorny/test-reporter@v1
+      with:
+        name: Flutter Tests
+        path: 'coverage/lcov.info'
+        reporter: flutter-json
+        fail-on-error: false
+
+    - name: Coverage summary
+      run: |
+        TOTAL_COVERAGE=$(lcov --summary coverage/lcov.info | grep "lines......" | awk '{print $2}' | sed 's/%//')
+        echo "Total coverage: $TOTAL_COVERAGE%"
+
+        if (( $(echo "$TOTAL_COVERAGE < 80" | bc -l) )); then
+          echo "Warning: Code coverage is below 80%"
+          exit 1
+        fi

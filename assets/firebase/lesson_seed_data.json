@@ -1,0 +1,477 @@
+{
+  "courses": {
+    "ewondo_basics": {
+      "id": "ewondo_basics",
+      "languageId": "ewondo",
+      "title": "Ewondo for Beginners",
+      "description": "Learn the basics of Ewondo, the most widely spoken Beti-Pahuin language in Central Cameroon.",
+      "level": "beginner",
+      "totalLessons": 12,
+      "estimatedDuration": 480,
+      "thumbnailUrl": "",
+      "status": "active",
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z"
+    },
+    "duala_commerce": {
+      "id": "duala_commerce",
+      "languageId": "duala",
+      "title": "Commercial Duala",
+      "description": "Learn Duala for trade and commerce, the lingua franca of Douala and coastal Cameroon.",
+      "level": "intermediate",
+      "totalLessons": 10,
+      "estimatedDuration": 400,
+      "thumbnailUrl": "",
+      "status": "active",
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z"
+    },
+    "bafang_culture": {
+      "id": "bafang_culture",
+      "languageId": "bafang",
+      "title": "Bafang Cultural Heritage",
+      "description": "Explore Bafang language through cultural stories and traditions from the Western Highlands.",
+      "level": "intermediate",
+      "totalLessons": 8,
+      "estimatedDuration": 320,
+      "thumbnailUrl": "",
+      "status": "active",
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z"
+    },
+    "fulfulde_nomadic": {
+      "id": "fulfulde_nomadic",
+      "languageId": "fulfulde",
+      "title": "Fulfulde for Nomadic Life",
+      "description": "Learn Fulfulde through the lens of pastoral and nomadic traditions in northern Cameroon.",
+      "level": "beginner",
+      "totalLessons": 10,
+      "estimatedDuration": 400,
+      "thumbnailUrl": "",
+      "status": "active",
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z"
+    },
+    "bassa_community": {
+      "id": "bassa_community",
+      "languageId": "bassa",
+      "title": "Bassa Community Language",
+      "description": "Discover Bassa language through community stories and traditional practices.",
+      "level": "intermediate",
+      "totalLessons": 8,
+      "estimatedDuration": 320,
+      "thumbnailUrl": "",
+      "status": "active",
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z"
+    },
+    "bamum_royal": {
+      "id": "bamum_royal",
+      "languageId": "bamum",
+      "title": "Bamum Royal Heritage",
+      "description": "Explore Bamum language through royal traditions and historical narratives from Foumban.",
+      "level": "advanced",
+      "totalLessons": 6,
+      "estimatedDuration": 240,
+      "thumbnailUrl": "",
+      "status": "active",
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z"
+    }
+  },
+  "lessons": {
+    "ewondo_lesson_01": {
+      "id": "ewondo_lesson_01",
+      "courseId": "ewondo_basics",
+      "title": "Greetings and Basic Courtesy",
+      "description": "Learn how to greet people and use basic courteous expressions in Ewondo.",
+      "order": 1,
+      "type": "interactive",
+      "status": "available",
+      "estimatedDuration": 30,
+      "thumbnailUrl": "",
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z",
+      "contents": [
+        {
+          "id": "content_001",
+          "type": "text",
+          "order": 1,
+          "title": "Introduction to Ewondo Greetings",
+          "content": {
+            "text": "Ewondo greetings are essential for daily interactions. The tone and time of day matter greatly in Ewondo culture.",
+            "language": "ewondo"
+          }
+        },
+        {
+          "id": "content_002",
+          "type": "vocabulary",
+          "order": 2,
+          "title": "Key Vocabulary",
+          "content": {
+            "words": [
+              {
+                "word": "Mboté",
+                "pronunciation": "/ᵐbote/",
+                "meaning": "Hello (general greeting)",
+                "example": "Mboté, mam wam! (Hello, my mother!)",
+                "audioUrl": ""
+              },
+              {
+                "word": "Mboté o bibóm",
+                "pronunciation": "/ᵐbote o bibom/",
+                "meaning": "Good morning",
+                "example": "Mboté o bibóm, tara! (Good morning, father!)",
+                "audioUrl": ""
+              },
+              {
+                "word": "Akiba",
+                "pronunciation": "/akiba/",
+                "meaning": "Goodbye",
+                "example": "Akiba nlé! (Goodbye, my friend!)",
+                "audioUrl": ""
+              },
+              {
+                "word": "Matónda",
+                "pronunciation": "/matonda/",
+                "meaning": "Thank you",
+                "example": "Matónda mingi! (Thank you very much!)",
+                "audioUrl": ""
+              }
+            ]
+          }
+        },
+        {
+          "id": "content_003",
+          "type": "audio",
+          "order": 3,
+          "title": "Pronunciation Practice",
+          "content": {
+            "audioUrl": "",
+            "transcript": "Listen to native speakers demonstrate proper Ewondo greetings with correct tones and intonation.",
+            "duration": 120
+          }
+        },
+        {
+          "id": "content_004",
+          "type": "exercise",
+          "order": 4,
+          "title": "Practice Exercise",
+          "content": {
+            "questions": [
+              {
+                "type": "multiple_choice",
+                "question": "How do you say 'Good morning' in Ewondo?",
+                "options": ["Mboté", "Mboté o bibóm", "Akiba", "Matónda"],
+                "correct": 1,
+                "explanation": "Mboté o bibóm specifically means 'Good morning', combining the general greeting with the time reference."
+              },
+              {
+                "type": "fill_blank",
+                "question": "Complete: _____ mingi! (Thank you very much!)",
+                "answer": "Matónda",
+                "explanation": "Matónda is the standard way to say 'thank you' in Ewondo."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "ewondo_lesson_02": {
+      "id": "ewondo_lesson_02",
+      "courseId": "ewondo_basics",
+      "title": "Family and Relationships",
+      "description": "Learn vocabulary for family members and relationships in Ewondo culture.",
+      "order": 2,
+      "type": "text",
+      "status": "locked",
+      "estimatedDuration": 35,
+      "thumbnailUrl": "",
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z",
+      "contents": [
+        {
+          "id": "content_005",
+          "type": "vocabulary",
+          "order": 1,
+          "title": "Family Vocabulary",
+          "content": {
+            "words": [
+              {
+                "word": "Tara",
+                "pronunciation": "/tara/",
+                "meaning": "Father",
+                "example": "Tara wam ayé woe? (Where is my father?)",
+                "audioUrl": ""
+              },
+              {
+                "word": "Mama / Mam",
+                "pronunciation": "/mama/ /mam/",
+                "meaning": "Mother",
+                "example": "Mam wam alé ye dzom. (My mother is at home.)",
+                "audioUrl": ""
+              },
+              {
+                "word": "Ndomo",
+                "pronunciation": "/ndomo/",
+                "meaning": "Child/Son",
+                "example": "Ndomo woe ayé songo. (His child is sleeping.)",
+                "audioUrl": ""
+              },
+              {
+                "word": "Ngon",
+                "pronunciation": "/ŋgon/",
+                "meaning": "Daughter",
+                "example": "Ngon wam ayé sukulu. (My daughter is at school.)",
+                "audioUrl": ""
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "duala_lesson_01": {
+      "id": "duala_lesson_01",
+      "courseId": "duala_commerce",
+      "title": "Market Transactions",
+      "description": "Essential Duala phrases for buying and selling in traditional markets.",
+      "order": 1,
+      "type": "conversation",
+      "status": "available",
+      "estimatedDuration": 40,
+      "thumbnailUrl": "",
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z",
+      "contents": [
+        {
+          "id": "content_006",
+          "type": "vocabulary",
+          "order": 1,
+          "title": "Market Vocabulary",
+          "content": {
+            "words": [
+              {
+                "word": "Mam",
+                "pronunciation": "/mam/",
+                "meaning": "Water",
+                "example": "Na loba mam. (I want water.)",
+                "audioUrl": ""
+              },
+              {
+                "word": "Diba",
+                "pronunciation": "/diba/",
+                "meaning": "Food",
+                "example": "Diba ni ekó? (How much is the food?)",
+                "audioUrl": ""
+              },
+              {
+                "word": "Mbongo",
+                "pronunciation": "/ᵐbongo/",
+                "meaning": "Money",
+                "example": "Mbongo yam si te. (I don't have money.)",
+                "audioUrl": ""
+              }
+            ]
+          }
+        },
+        {
+          "id": "content_007",
+          "type": "dialogue",
+          "order": 2,
+          "title": "Market Conversation",
+          "content": {
+            "dialogue": [
+              {
+                "speaker": "Buyer",
+                "text": "Mboló! Diba ni ekó?",
+                "translation": "Hello! How much is the food?"
+              },
+              {
+                "speaker": "Seller",
+                "text": "Diba ni talo tatu.",
+                "translation": "The food costs three hundred."
+              },
+              {
+                "speaker": "Buyer",
+                "text": "Ó múná pési?",
+                "translation": "Can you reduce the price?"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "bafang_lesson_01": {
+      "id": "bafang_lesson_01",
+      "courseId": "bafang_culture",
+      "title": "Traditional Stories and Folklore",
+      "description": "Explore Bafang culture through traditional stories and their moral lessons.",
+      "order": 1,
+      "type": "audio",
+      "status": "available",
+      "estimatedDuration": 45,
+      "thumbnailUrl": "",
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z",
+      "contents": [
+        {
+          "id": "content_008",
+          "type": "story",
+          "order": 1,
+          "title": "The Wise Tortoise",
+          "content": {
+            "title": "Kùi nə̀ nkàp",
+            "translation": "The Tortoise and Wisdom",
+            "text": "Story content in Bafang would go here...",
+            "moral": "Wisdom comes from listening to elders and learning from experience.",
+            "culturalContext": "This story teaches the importance of respecting traditional knowledge."
+          }
+        }
+      ]
+    },
+    "fulfulde_lesson_01": {
+      "id": "fulfulde_lesson_01",
+      "courseId": "fulfulde_nomadic",
+      "title": "Fulfulde Greetings and Pastoral Life",
+      "description": "Learn basic Fulfulde greetings and vocabulary related to pastoral life.",
+      "order": 1,
+      "type": "interactive",
+      "status": "available",
+      "estimatedDuration": 30,
+      "thumbnailUrl": "",
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z",
+      "contents": [
+        {
+          "id": "fulfulde_content_001",
+          "type": "text",
+          "order": 1,
+          "title": "Introduction to Fulfulde",
+          "content": {
+            "text": "Fulfulde is spoken by the Fulani people across West and Central Africa. Learn greetings essential for pastoral communities.",
+            "language": "fulfulde"
+          }
+        },
+        {
+          "id": "fulfulde_content_002",
+          "type": "vocabulary",
+          "order": 2,
+          "title": "Basic Greetings",
+          "content": {
+            "words": [
+              {
+                "word": "No waali",
+                "pronunciation": "/no waːli/",
+                "meaning": "Hello/Good morning",
+                "example": "No waali an! (Hello to you!)",
+                "audioUrl": ""
+              },
+              {
+                "word": "Ndiyam",
+                "pronunciation": "/ndijam/",
+                "meaning": "Water",
+                "example": "Mi yiɗi ndiyam (I want water)",
+                "audioUrl": ""
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "bassa_lesson_01": {
+      "id": "bassa_lesson_01",
+      "courseId": "bassa_community",
+      "title": "Bassa Community Greetings",
+      "description": "Learn Bassa greetings and community vocabulary.",
+      "order": 1,
+      "type": "interactive",
+      "status": "available",
+      "estimatedDuration": 30,
+      "thumbnailUrl": "",
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z",
+      "contents": [
+        {
+          "id": "bassa_content_001",
+          "type": "text",
+          "order": 1,
+          "title": "Introduction to Bassa",
+          "content": {
+            "text": "Bassa is spoken in central Cameroon. Learn greetings used in community settings.",
+            "language": "bassa"
+          }
+        },
+        {
+          "id": "bassa_content_002",
+          "type": "vocabulary",
+          "order": 2,
+          "title": "Community Vocabulary",
+          "content": {
+            "words": [
+              {
+                "word": "Mə̀kpɔ̀",
+                "pronunciation": "/mə̀kpɔ̀/",
+                "meaning": "Hello",
+                "example": "Mə̀kpɔ̀ mɔ̀! (Hello mother!)",
+                "audioUrl": ""
+              },
+              {
+                "word": "Hɔp",
+                "pronunciation": "/hɔp/",
+                "meaning": "House",
+                "example": "Hɔp njam (My house)",
+                "audioUrl": ""
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "bamum_lesson_01": {
+      "id": "bamum_lesson_01",
+      "courseId": "bamum_royal",
+      "title": "Bamum Royal Language",
+      "description": "Learn Bamum language through royal and cultural contexts.",
+      "order": 1,
+      "type": "interactive",
+      "status": "available",
+      "estimatedDuration": 30,
+      "thumbnailUrl": "",
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z",
+      "contents": [
+        {
+          "id": "bamum_content_001",
+          "type": "text",
+          "order": 1,
+          "title": "Introduction to Bamum",
+          "content": {
+            "text": "Bamum is known for its rich royal heritage and script. Learn basic royal vocabulary.",
+            "language": "bamum"
+          }
+        },
+        {
+          "id": "bamum_content_002",
+          "type": "vocabulary",
+          "order": 2,
+          "title": "Royal Terms",
+          "content": {
+            "words": [
+              {
+                "word": "Nzi",
+                "pronunciation": "/nzi/",
+                "meaning": "King/Chief",
+                "example": "Nzi Bamum (King of Bamum)",
+                "audioUrl": ""
+              },
+              {
+                "word": "Ntuŋ",
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}  }
+}

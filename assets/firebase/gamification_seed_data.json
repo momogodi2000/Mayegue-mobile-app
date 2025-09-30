@@ -1,0 +1,302 @@
+{
+  "achievements": {
+    "first_hello": {
+      "id": "first_hello",
+      "title": "Premier Mboté",
+      "description": "Learn your first greeting in Ewondo",
+      "iconName": "handshake",
+      "type": "lessonCompletion",
+      "pointsReward": 10,
+      "criteria": {
+        "lessonsCompleted": 1,
+        "language": "ewondo",
+        "topic": "greetings"
+      },
+      "isUnlocked": false
+    },
+    "ewondo_explorer": {
+      "id": "ewondo_explorer",
+      "title": "Explorateur Ewondo",
+      "description": "Complete 5 Ewondo lessons",
+      "iconName": "explore",
+      "type": "lessonCompletion",
+      "pointsReward": 50,
+      "criteria": {
+        "lessonsCompleted": 5,
+        "language": "ewondo"
+      },
+      "isUnlocked": false
+    },
+    "duala_trader": {
+      "id": "duala_trader",
+      "title": "Commerçant Duala",
+      "description": "Master commercial Duala vocabulary",
+      "iconName": "shopping_cart",
+      "type": "courseCompletion",
+      "pointsReward": 75,
+      "criteria": {
+        "coursesCompleted": 1,
+        "courseId": "duala_commerce"
+      },
+      "isUnlocked": false
+    },
+    "bafang_storyteller": {
+      "id": "bafang_storyteller",
+      "title": "Conteur Bafang",
+      "description": "Learn traditional Bafang stories",
+      "iconName": "auto_stories",
+      "type": "courseCompletion",
+      "pointsReward": 100,
+      "criteria": {
+        "coursesCompleted": 1,
+        "courseId": "bafang_culture"
+      },
+      "isUnlocked": false
+    },
+    "cameroon_linguist": {
+      "id": "cameroon_linguist",
+      "title": "Linguiste Camerounais",
+      "description": "Learn vocabulary in all 6 languages",
+      "iconName": "translate",
+      "type": "special",
+      "pointsReward": 250,
+      "criteria": {
+        "languagesStudied": 6,
+        "minLessonsPerLanguage": 3
+      },
+      "isUnlocked": false
+    },
+    "perfect_pronunciation": {
+      "id": "perfect_pronunciation",
+      "title": "Prononciation Parfaite",
+      "description": "Get perfect pronunciation scores 10 times",
+      "iconName": "record_voice_over",
+      "type": "pointsMilestone",
+      "pointsReward": 75,
+      "criteria": {
+        "perfectPronunciations": 10
+      },
+      "isUnlocked": false
+    },
+    "daily_learner": {
+      "id": "daily_learner",
+      "title": "Apprenant Quotidien",
+      "description": "Maintain a 7-day learning streak",
+      "iconName": "local_fire_department",
+      "type": "streak",
+      "pointsReward": 50,
+      "criteria": {
+        "streakDays": 7
+      },
+      "isUnlocked": false
+    },
+    "community_helper": {
+      "id": "community_helper",
+      "title": "Aide Communautaire",
+      "description": "Help 5 community members with their questions",
+      "iconName": "help_outline",
+      "type": "social",
+      "pointsReward": 60,
+      "criteria": {
+        "helpfulAnswers": 5
+      },
+      "isUnlocked": false
+    },
+    "cultural_ambassador": {
+      "id": "cultural_ambassador",
+      "title": "Ambassadeur Culturel",
+      "description": "Share 3 cultural insights about Cameroon languages",
+      "iconName": "public",
+      "type": "social",
+      "pointsReward": 40,
+      "criteria": {
+        "culturalShares": 3
+      },
+      "isUnlocked": false
+    },
+    "quiz_master": {
+      "id": "quiz_master",
+      "title": "Maître des Quiz",
+      "description": "Score 100% on 5 different quizzes",
+      "iconName": "quiz",
+      "type": "pointsMilestone",
+      "pointsReward": 85,
+      "criteria": {
+        "perfectQuizScores": 5
+      },
+      "isUnlocked": false
+    }
+  },
+  "badges": {
+    "beginner_badge": {
+      "id": "beginner_badge",
+      "name": "Débutant",
+      "description": "Welcome to your language learning journey",
+      "iconName": "school",
+      "rarity": "common",
+      "pointsRequired": 0,
+      "category": "learning"
+    },
+    "intermediate_badge": {
+      "id": "intermediate_badge",
+      "name": "Intermédiaire",
+      "description": "You're making great progress",
+      "iconName": "trending_up",
+      "rarity": "uncommon",
+      "pointsRequired": 100,
+      "category": "learning"
+    },
+    "advanced_badge": {
+      "id": "advanced_badge",
+      "name": "Avancé",
+      "description": "Advanced language learner",
+      "iconName": "star",
+      "rarity": "rare",
+      "pointsRequired": 300,
+      "category": "learning"
+    },
+    "expert_badge": {
+      "id": "expert_badge",
+      "name": "Expert",
+      "description": "Language learning expert",
+      "iconName": "workspace_premium",
+      "rarity": "epic",
+      "pointsRequired": 500,
+      "category": "learning"
+    },
+    "master_badge": {
+      "id": "master_badge",
+      "name": "Maître",
+      "description": "Master of Cameroon languages",
+      "iconName": "emoji_events",
+      "rarity": "legendary",
+      "pointsRequired": 1000,
+      "category": "achievement"
+    },
+    "social_butterfly": {
+      "id": "social_butterfly",
+      "name": "Papillon Social",
+      "description": "Active community member",
+      "iconName": "group",
+      "rarity": "uncommon",
+      "pointsRequired": 150,
+      "category": "social"
+    },
+    "culture_keeper": {
+      "id": "culture_keeper",
+      "name": "Gardien de Culture",
+      "description": "Preserving Cameroon's linguistic heritage",
+      "iconName": "account_balance",
+      "rarity": "rare",
+      "pointsRequired": 250,
+      "category": "special"
+    },
+    "streak_champion": {
+      "id": "streak_champion",
+      "name": "Champion de Série",
+      "description": "Consistent daily learner",
+      "iconName": "flash_on",
+      "rarity": "epic",
+      "pointsRequired": 200,
+      "category": "achievement"
+    }
+  },
+  "levels": {
+    "1": {
+      "level": 1,
+      "name": "Nouveau Apprenant",
+      "minPoints": 0,
+      "maxPoints": 49,
+      "benefits": ["Access to basic lessons", "Community participation"]
+    },
+    "2": {
+      "level": 2,
+      "name": "Apprenant Actif",
+      "minPoints": 50,
+      "maxPoints": 124,
+      "benefits": ["Unlock intermediate lessons", "Basic gamification features"]
+    },
+    "3": {
+      "level": 3,
+      "name": "Étudiant Sérieux",
+      "minPoints": 125,
+      "maxPoints": 249,
+      "benefits": ["Advanced lessons access", "AI tutor conversations"]
+    },
+    "4": {
+      "level": 4,
+      "name": "Apprenant Dévoué",
+      "minPoints": 250,
+      "maxPoints": 424,
+      "benefits": ["Cultural content access", "Pronunciation feedback"]
+    },
+    "5": {
+      "level": 5,
+      "name": "Linguiste Amateur",
+      "minPoints": 425,
+      "maxPoints": 649,
+      "benefits": ["Multi-language learning", "Community leadership features"]
+    },
+    "6": {
+      "level": 6,
+      "name": "Ambassadeur Culturel",
+      "minPoints": 650,
+      "maxPoints": 924,
+      "benefits": ["Teaching tools", "Advanced analytics"]
+    },
+    "7": {
+      "level": 7,
+      "name": "Maître des Langues",
+      "minPoints": 925,
+      "maxPoints": 1299,
+      "benefits": ["Content creation tools", "Mentorship opportunities"]
+    },
+    "8": {
+      "level": 8,
+      "name": "Gardien du Patrimoine",
+      "minPoints": 1300,
+      "maxPoints": 1799,
+      "benefits": ["Heritage preservation tools", "Expert community access"]
+    },
+    "9": {
+      "level": 9,
+      "name": "Sage Linguistique",
+      "minPoints": 1800,
+      "maxPoints": 2499,
+      "benefits": ["Research collaboration", "Advanced cultural insights"]
+    },
+    "10": {
+      "level": 10,
+      "name": "Légende Vivante",
+      "minPoints": 2500,
+      "maxPoints": 9999999,
+      "benefits": ["All features unlocked", "Hall of Fame", "Legacy contributions"]
+    }
+  },
+  "point_multipliers": {
+    "weekend_bonus": {
+      "name": "Bonus Weekend",
+      "description": "Double points on weekends",
+      "multiplier": 2.0,
+      "conditions": ["weekend"]
+    },
+    "streak_bonus": {
+      "name": "Bonus Série",
+      "description": "Extra points for maintaining streaks",
+      "multiplier": 1.5,
+      "conditions": ["streak_days > 3"]
+    },
+    "perfect_lesson": {
+      "name": "Leçon Parfaite",
+      "description": "Bonus for perfect lesson completion",
+      "multiplier": 1.25,
+      "conditions": ["score == 100"]
+    },
+    "cultural_content": {
+      "name": "Contenu Culturel",
+      "description": "Extra points for cultural lessons",
+      "multiplier": 1.3,
+      "conditions": ["lesson_type == 'cultural'"]
+    }
+  }
+}

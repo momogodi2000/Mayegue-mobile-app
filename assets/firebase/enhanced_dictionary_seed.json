@@ -1,0 +1,186 @@
+{
+  "dictionary": {
+    "ewondo_word_001": {
+      "id": "ewondo_word_001",
+      "word": "Mbolo",
+      "language": "ewondo",
+      "translations": {
+        "french": "Bonjour",
+        "english": "Hello"
+      },
+      "pronunciation": {
+        "ipa": "/ᵐbolo/",
+        "audioUrl": "",
+        "description": "Pronounce with a nasal 'mb' sound"
+      },
+      "category": "greeting",
+      "difficulty": "beginner",
+      "usage": "Common greeting used throughout the day",
+      "examples": [
+        {
+          "sentence": "Mbolo moti",
+          "translation_fr": "Bonjour à tous",
+          "translation_en": "Hello everyone"
+        }
+      ],
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z"
+    },
+    "ewondo_word_002": {
+      "id": "ewondo_word_002",
+      "word": "Akiba",
+      "language": "ewondo",
+      "translations": {
+        "french": "Au revoir",
+        "english": "Goodbye"
+      },
+      "pronunciation": {
+        "ipa": "/akiba/",
+        "audioUrl": "",
+        "description": "Pronounced as 'ah-kee-bah'"
+      },
+      "category": "greeting",
+      "difficulty": "beginner",
+      "usage": "Farewell greeting",
+      "examples": [
+        {
+          "sentence": "Akiba nlé",
+          "translation_fr": "Au revoir mon ami",
+          "translation_en": "Goodbye my friend"
+        }
+      ],
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z"
+    },
+    "duala_word_001": {
+      "id": "duala_word_001",
+      "word": "Mam",
+      "language": "duala",
+      "translations": {
+        "french": "Eau",
+        "english": "Water"
+      },
+      "pronunciation": {
+        "ipa": "/mam/",
+        "audioUrl": "",
+        "description": "Simple pronunciation 'mam'"
+      },
+      "category": "basic_needs",
+      "difficulty": "beginner",
+      "usage": "Essential word for water",
+      "examples": [
+        {
+          "sentence": "Na loba mam",
+          "translation_fr": "Je veux de l'eau",
+          "translation_en": "I want water"
+        }
+      ],
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z"
+    },
+    "bafang_word_001": {
+      "id": "bafang_word_001",
+      "word": "Kaa",
+      "language": "bafang",
+      "translations": {
+        "french": "Venir",
+        "english": "Come"
+      },
+      "pronunciation": {
+        "ipa": "/kaː/",
+        "audioUrl": "",
+        "description": "Long 'a' sound"
+      },
+      "category": "action",
+      "difficulty": "beginner",
+      "usage": "Basic verb for movement",
+      "examples": [
+        {
+          "sentence": "Kaa kə̀",
+          "translation_fr": "Viens ici",
+          "translation_en": "Come here"
+        }
+      ],
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z"
+    },
+    "fulfulde_word_001": {
+      "id": "fulfulde_word_001",
+      "word": "Ndiyam",
+      "language": "fulfulde",
+      "translations": {
+        "french": "Eau",
+        "english": "Water"
+      },
+      "pronunciation": {
+        "ipa": "/ndijam/",
+        "audioUrl": "",
+        "description": "Nasal 'nd' followed by 'i-yam'"
+      },
+      "category": "basic_needs",
+      "difficulty": "beginner",
+      "usage": "Essential word for water in Fulfulde",
+      "examples": [
+        {
+          "sentence": "Mi yiɗi ndiyam",
+          "translation_fr": "Je veux de l'eau",
+          "translation_en": "I want water"
+        }
+      ],
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z"
+    },
+    "bassa_word_001": {
+      "id": "bassa_word_001",
+      "word": "Hɔp",
+      "language": "bassa",
+      "translations": {
+        "french": "Maison",
+        "english": "House"
+      },
+      "pronunciation": {
+        "ipa": "/hɔp/",
+        "audioUrl": "",
+        "description": "Open 'o' sound with 'p' ending"
+      },
+      "category": "places",
+      "difficulty": "beginner",
+      "usage": "Basic word for house/home",
+      "examples": [
+        {
+          "sentence": "Hɔp njam",
+          "translation_fr": "Ma maison",
+          "translation_en": "My house"
+        }
+      ],
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z"
+    },
+    "bamum_word_001": {
+      "id": "bamum_word_001",
+      "word": "Nzi",
+      "language": "bamum",
+      "translations": {
+        "french": "Roi",
+        "english": "King"
+      },
+      "pronunciation": {
+        "ipa": "/nzi/",
+        "audioUrl": "",
+        "description": "Nasal 'n' with 'zi'"
+      },
+      "category": "culture",
+      "difficulty": "intermediate",
+      "usage": "Important cultural term referring to traditional ruler",
+      "examples": [
+        {
+          "sentence": "Nzi Bamum",
+          "translation_fr": "Roi des Bamum",
+          "translation_en": "King of the Bamum"
+        }
+      ],
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z"
+    }
+  }
+}

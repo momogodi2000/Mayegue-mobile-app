@@ -1,0 +1,194 @@
+name: Health Monitoring
+
+on:
+  schedule:
+    # Run daily at 6 AM UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  # Health checks
+  health-check:
+    name: Health Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+
+    - name: Cache Flutter dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.pub-cache
+          ${{ runner.tool_cache }}/flutter
+        key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          flutter-${{ runner.os }}-
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Run health checks
+      run: |
+        echo "Running Flutter doctor..."
+        flutter doctor -v
+
+        echo "Checking pubspec.yaml..."
+        flutter pub get --dry-run
+
+        echo "Checking for unused files..."
+        find lib -name "*.dart" -exec grep -l "unused" {} \; || echo "No unused files found"
+
+    - name: Check bundle size
+      run: |
+        flutter build apk --debug --target-platform android-arm64
+        APK_SIZE=$(stat -c%s build/app/outputs/flutter-apk/app-debug.apk)
+        APK_SIZE_MB=$(echo "scale=2; $APK_SIZE / 1048576" | bc)
+        echo "Current APK size: $APK_SIZE_MB MB"
+
+        # Store size for trend analysis
+        echo $APK_SIZE_MB > apk_size.txt
+
+    - name: Upload health metrics
+      uses: actions/upload-artifact@v3
+      with:
+        name: health-metrics
+        path: apk_size.txt
+
+  # Firebase monitoring
+  firebase-monitoring:
+    name: Firebase Monitoring
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Firebase CLI
+      run: npm install -g firebase-tools
+
+    - name: Check Firebase project status
+      run: |
+        firebase projects:list --project ${{ secrets.FIREBASE_PROJECT_ID }}
+      env:
+        FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+    - name: Check Firebase functions status
+      run: |
+        firebase functions:list --project ${{ secrets.FIREBASE_PROJECT_ID }} || echo "No functions found"
+      env:
+        FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+  # Dependency monitoring
+  dependency-monitoring:
+    name: Dependency Monitoring
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Check for outdated dependencies
+      run: |
+        flutter pub outdated --json > outdated.json
+        echo "Outdated dependencies:"
+        cat outdated.json | jq '.packages[] | select(.current != .upgradable) | "\(.package): \(.current) -> \(.upgradable)"' || echo "All dependencies up to date"
+
+    - name: Check for security vulnerabilities
+      run: |
+        flutter pub audit > audit_results.txt || echo "Audit completed with warnings"
+        cat audit_results.txt
+
+    - name: Upload dependency report
+      uses: actions/upload-artifact@v3
+      with:
+        name: dependency-report
+        path: |
+          outdated.json
+          audit_results.txt
+
+  # Performance monitoring
+  performance-monitoring:
+    name: Performance Monitoring
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Run performance tests
+      run: |
+        flutter test --machine > performance_results.json || echo "Performance tests completed"
+        echo "Performance results saved"
+
+    - name: Upload performance results
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-results
+        path: performance_results.json
+
+  # Alert on issues
+  alert-on-issues:
+    name: Alert on Issues
+    runs-on: ubuntu-latest
+    needs: [health-check, firebase-monitoring, dependency-monitoring, performance-monitoring]
+    if: failure()
+
+    steps:
+    - name: Create issue on failure
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const title = `🚨 Health Check Failed - ${new Date().toISOString().split('T')[0]}`;
+          const body = `
+          ## Health Check Failure
+
+          One or more health checks failed. Please review the workflow run for details.
+
+          **Failed Jobs:**
+          - Health Check: ${{ needs.health-check.result }}
+          - Firebase Monitoring: ${{ needs.firebase-monitoring.result }}
+          - Dependency Monitoring: ${{ needs.dependency-monitoring.result }}
+          - Performance Monitoring: ${{ needs.performance-monitoring.result }}
+
+          **Run URL:** ${context.payload.repository.html_url}/actions/runs/${context.runId}
+          `;
+
+          await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: title,
+            body: body,
+            labels: ['health-check', 'automated']
+          });
+
+    - name: Send notification
+      run: |
+        echo "Sending alert notification..."
+        # Add your notification logic here (Slack, Discord, email, etc.)
+        # curl -X POST -H 'Content-type: application/json' --data '{"text":"Mayegue App health check failed"}' ${{ secrets.SLACK_WEBHOOK_URL }}

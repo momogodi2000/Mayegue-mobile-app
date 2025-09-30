@@ -1,0 +1,58 @@
+{
+  "languages": {
+    "ewondo": {
+      "name": "Ewondo",
+      "group": "Beti-Pahuin",
+      "region": "Central",
+      "type": "Primary",
+      "status": "active",
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z"
+    },
+    "duala": {
+      "name": "Duala",
+      "group": "Coastal Bantu",
+      "region": "Littoral",
+      "type": "Commercial",
+      "status": "active",
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z"
+    },
+    "bafang": {
+      "name": "Bafang/Fe'efe'e",
+      "group": "Grassfields",
+      "region": "West",
+      "type": "Regional",
+      "status": "active",
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z"
+    },
+    "fulfulde": {
+      "name": "Fulfulde",
+      "group": "Niger-Congo",
+      "region": "North",
+      "type": "Pastoral",
+      "status": "active",
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z"
+    },
+    "bassa": {
+      "name": "Bassa",
+      "group": "A40 Bantu",
+      "region": "Central-Littoral",
+      "type": "Traditional",
+      "status": "active",
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z"
+    },
+    "bamum": {
+      "name": "Bamum",
+      "group": "Grassfields",
+      "region": "West",
+      "type": "Heritage",
+      "status": "active",
+      "createdAt": "2025-09-25T10:00:00Z",
+      "updatedAt": "2025-09-25T10:00:00Z"
+    }
+  }
+}

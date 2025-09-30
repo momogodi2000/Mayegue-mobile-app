@@ -1,0 +1,198 @@
+name: Code Quality & Security
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run weekly on Mondays at 2 AM UTC
+    - cron: '0 2 * * 1'
+
+jobs:
+  # Code Quality Checks
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+
+    - name: Cache Flutter dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.pub-cache
+          ${{ runner.tool_cache }}/flutter
+        key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          flutter-${{ runner.os }}-
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Run Flutter analyze with strict mode
+      run: flutter analyze --fatal-infos --fatal-warnings
+
+    - name: Check for unused dependencies
+      run: |
+        flutter pub deps --json | jq '.packages[] | select(.kind == "transitive") | .name' | sort | uniq > transitive_deps.txt
+        flutter pub deps --json | jq '.packages[] | select(.kind == "direct") | .name' | sort | uniq > direct_deps.txt
+        echo "Transitive dependencies that might be unused:"
+        comm -23 transitive_deps.txt direct_deps.txt || true
+
+    - name: Check pubspec.yaml formatting
+      run: |
+        if ! flutter format pubspec.yaml --dry-run --set-exit-if-changed; then
+          echo "pubspec.yaml is not properly formatted"
+          exit 1
+        fi
+
+  # Security Analysis
+  security-analysis:
+    name: Security Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Run security audit
+      run: flutter pub audit
+
+    - name: Check for vulnerable dependencies
+      run: |
+        # Check for known security issues
+        flutter pub deps | grep -i "security\|vulnerable\|exploit" || echo "No obvious security issues found"
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  # License Compliance
+  license-check:
+    name: License Compliance
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Check licenses
+      run: flutter pub licenses
+
+    - name: Validate license compatibility
+      run: |
+        # Check for GPL licenses that might affect distribution
+        flutter pub deps --json | jq -r '.packages[] | select(.license != null) | "\(.name): \(.license)"' | grep -i "gpl\|agpl" || echo "No GPL licenses found"
+
+  # Performance Analysis
+  performance-analysis:
+    name: Performance Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Build APK for analysis
+      run: flutter build apk --debug --target-platform android-arm64
+
+    - name: Analyze APK size
+      run: |
+        APK_SIZE=$(stat -c%s build/app/outputs/flutter-apk/app-debug.apk)
+        APK_SIZE_MB=$(echo "scale=2; $APK_SIZE / 1048576" | bc)
+        echo "APK Size: $APK_SIZE_MB MB"
+        if (( $(echo "$APK_SIZE_MB > 50" | bc -l) )); then
+          echo "Warning: APK size exceeds 50MB"
+        fi
+
+    - name: Check for large assets
+      run: |
+        find assets -type f -size +1M -exec ls -lh {} \; | head -10 || echo "No large assets found"
+
+  # Dependency Updates
+  dependency-updates:
+    name: Dependency Updates
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Check for outdated dependencies
+      run: flutter pub outdated
+
+    - name: Create dependency update PR
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: 'chore: update dependencies'
+        title: 'Automated Dependency Updates'
+        body: |
+          This PR updates dependencies to their latest versions.
+
+          ## Changes
+          - Updated Flutter dependencies
+          - Updated pub packages
+
+          ## Checklist
+          - [ ] Tests pass
+          - [ ] No breaking changes
+          - [ ] Documentation updated if needed
+        branch: automated/dependency-updates
+        delete-branch: true

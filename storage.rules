@@ -1,0 +1,144 @@
+// Firebase Storage Security Rules for Mayegue App
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+             firestore.exists(/databases/(default)/documents/users/$(request.auth.uid)) &&
+             firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isTeacher() {
+      return isAuthenticated() &&
+             firestore.exists(/databases/(default)/documents/users/$(request.auth.uid)) &&
+             firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'teacher';
+    }
+
+    function isLearner() {
+      return isAuthenticated() &&
+             firestore.exists(/databases/(default)/documents/users/$(request.auth.uid)) &&
+             firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'learner';
+    }
+
+    // User profile images
+    match /users/{userId}/profile/{fileName} {
+      // Allow users to upload their own profile images
+      allow read, write: if isOwner(userId);
+
+      // Allow admins to manage all profile images
+      allow read, write: if isAdmin();
+
+      // File type restrictions
+      allow write: if request.resource.contentType.matches('image/.*') &&
+                   request.resource.size < 5 * 1024 * 1024; // 5MB limit
+    }
+
+    // Lesson content (audio/video)
+    match /lessons/{lessonId}/{fileName} {
+      // Allow read for authenticated users
+      allow read: if isAuthenticated();
+
+      // Allow teachers and admins to upload lesson content
+      allow write: if isAuthenticated() && (isTeacher() || isAdmin());
+
+      // File type restrictions for media
+      allow write: if (request.resource.contentType.matches('audio/.*') ||
+                      request.resource.contentType.matches('video/.*')) &&
+                   request.resource.size < 50 * 1024 * 1024; // 50MB limit
+    }
+
+    // Course thumbnails
+    match /courses/{courseId}/thumbnail/{fileName} {
+      // Allow read for authenticated users
+      allow read: if isAuthenticated();
+
+      // Allow teachers and admins to upload thumbnails
+      allow write: if isAuthenticated() && (isTeacher() || isAdmin());
+
+      // File type restrictions
+      allow write: if request.resource.contentType.matches('image/.*') &&
+                   request.resource.size < 2 * 1024 * 1024; // 2MB limit
+    }
+
+    // Dictionary audio files
+    match /dictionary/{wordId}/audio/{fileName} {
+      // Allow read for authenticated users
+      allow read: if isAuthenticated();
+
+      // Allow teachers and admins to upload audio
+      allow write: if isAuthenticated() && (isTeacher() || isAdmin());
+
+      // File type restrictions
+      allow write: if request.resource.contentType.matches('audio/.*') &&
+                   request.resource.size < 10 * 1024 * 1024; // 10MB limit
+    }
+
+    // Chat attachments
+    match /chat/{conversationId}/{fileName} {
+      // Allow read/write for authenticated users in the conversation
+      allow read, write: if isAuthenticated() &&
+        firestore.exists(/databases/(default)/documents/chat_messages/$(conversationId)) &&
+        (firestore.get(/databases/(default)/documents/chat_messages/$(conversationId)).data.senderId == request.auth.uid ||
+         firestore.get(/databases/(default)/documents/chat_messages/$(conversationId)).data.receiverId == request.auth.uid);
+
+      // File type and size restrictions
+      allow write: if request.resource.size < 10 * 1024 * 1024; // 10MB limit
+    }
+
+    // Community forum attachments
+    match /forums/{forumId}/{discussionId}/{fileName} {
+      // Allow read for authenticated users
+      allow read: if isAuthenticated();
+
+      // Allow authenticated users to upload attachments
+      allow write: if isAuthenticated();
+
+      // File type and size restrictions
+      allow write: if request.resource.size < 10 * 1024 * 1024; // 10MB limit
+    }
+
+    // Certificate templates (admin only)
+    match /certificates/templates/{fileName} {
+      // Only admins can manage certificate templates
+      allow read, write: if isAdmin();
+
+      // File type restrictions
+      allow write: if request.resource.contentType.matches('image/.*') &&
+                   request.resource.size < 5 * 1024 * 1024; // 5MB limit
+    }
+
+    // Generated certificates
+    match /certificates/generated/{userId}/{fileName} {
+      // Allow users to read their own certificates
+      allow read: if isOwner(userId) || isAdmin();
+
+      // Allow system to generate certificates
+      allow write: if false; // Only through Cloud Functions
+    }
+
+    // Temporary uploads (for processing)
+    match /temp/{userId}/{fileName} {
+      // Allow authenticated users to upload temporary files
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+
+      // Auto-delete after 24 hours (handled by Cloud Functions)
+      // File size limit
+      allow write: if request.resource.size < 50 * 1024 * 1024; // 50MB limit
+    }
+
+    // Backup files (admin only)
+    match /backups/{fileName} {
+      // Only admins can access backups
+      allow read, write: if isAdmin();
+    }
+  }
+}

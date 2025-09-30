@@ -1,0 +1,206 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  # Quick validation checks
+  validate:
+    name: Validate PR
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+
+    - name: Cache Flutter dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.pub-cache
+          ${{ runner.tool_cache }}/flutter
+        key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          flutter-${{ runner.os }}-
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Validate pubspec.yaml
+      run: flutter pub get --dry-run
+
+    - name: Check formatting
+      run: |
+        if [ "$(flutter format --dry-run --set-exit-if-changed . | wc -l)" -gt 0 ]; then
+          echo "Code is not properly formatted. Run 'flutter format .' to fix."
+          flutter format --dry-run --set-exit-if-changed .
+          exit 1
+        fi
+
+    - name: Run basic analysis
+      run: flutter analyze --fatal-warnings lib/
+
+  # Unit and Widget Tests
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    needs: validate
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+
+    - name: Cache Flutter dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.pub-cache
+          ${{ runner.tool_cache }}/flutter
+        key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          flutter-${{ runner.os }}-
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Run unit tests
+      run: flutter test --coverage --test-randomize-ordering-seed random
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  # Build verification
+  build-check:
+    name: Build Check
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+
+    - name: Cache Flutter dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.pub-cache
+          ${{ runner.tool_cache }}/flutter
+        key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          flutter-${{ runner.os }}-
+
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Create local.properties
+      run: |
+        echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
+        echo "sdk.dir=/usr/local/lib/android/sdk" >> android/local.properties
+
+    - name: Build Android APK (Debug)
+      run: flutter build apk --debug --target-platform android-arm64
+
+    - name: Build Web
+      run: flutter build web --release
+
+  # Integration Tests (if any)
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: build-check
+    if: contains(github.event.pull_request.labels.*.name, 'integration-test') || github.event_name == 'workflow_dispatch'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+
+    - name: Cache Flutter dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.pub-cache
+          ${{ runner.tool_cache }}/flutter
+        key: flutter-${{ runner.os }}-
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Run integration tests
+      run: |
+        # Add integration test commands here
+        echo "Running integration tests..."
+        # flutter drive --target=test_driver/app.dart
+
+  # PR Review Comments
+  pr-comments:
+    name: PR Comments
+    runs-on: ubuntu-latest
+    needs: [validate, test, build-check]
+    if: always()
+
+    steps:
+    - name: Comment on PR
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const { data: checks } = await github.rest.checks.listForRef({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: context.sha
+          });
+
+          const conclusion = checks.check_runs.every(run => run.conclusion === 'success') ? 'success' : 'failure';
+
+          const body = `
+          ## 🤖 CI/CD Status
+
+          **Validation:** ${checks.check_runs.find(r => r.name === 'Validate PR')?.conclusion || 'pending'}
+          **Tests:** ${checks.check_runs.find(r => r.name === 'Run Tests')?.conclusion || 'pending'}
+          **Build:** ${checks.check_runs.find(r => r.name === 'Build Check')?.conclusion || 'pending'}
+
+          ${conclusion === 'success' ? '✅ All checks passed!' : '❌ Some checks failed. Please review the logs.'}
+          `;
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: body
+          });

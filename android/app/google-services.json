@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "853678151393",
+    "project_id": "studio-6750997720-7c22e",
+    "storage_bucket": "studio-6750997720-7c22e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:853678151393:android:c448e584dca7faac9cc9a0",
+        "android_client_info": {
+          "package_name": "com.mayegue.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "853678151393-4atq8co6pmqlgiu6tgnjs4t20kfs6189.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBIqG0_OwcU8evk2TqO2IQqFHEv3q9qwZc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "853678151393-4atq8co6pmqlgiu6tgnjs4t20kfs6189.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

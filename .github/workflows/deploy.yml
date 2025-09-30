@@ -1,0 +1,239 @@
+name: Release & Deploy
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+
+jobs:
+  # Deploy to Google Play Store
+  deploy-play-store:
+    name: Deploy to Google Play Store
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Cache Flutter dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.pub-cache
+          ${{ runner.tool_cache }}/flutter
+        key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          flutter-${{ runner.os }}-
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Create local.properties
+      run: |
+        echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
+        echo "sdk.dir=/usr/local/lib/android/sdk" >> android/local.properties
+
+    - name: Build App Bundle
+      run: flutter build appbundle --release
+
+    - name: Sign App Bundle
+      run: |
+        echo "${{ secrets.PLAY_STORE_KEYSTORE }}" | base64 -d > android/app/keystore.jks
+        echo "storeFile=keystore.jks" >> android/key.properties
+        echo "storePassword=${{ secrets.PLAY_STORE_KEYSTORE_PASSWORD }}" >> android/key.properties
+        echo "keyAlias=${{ secrets.PLAY_STORE_KEY_ALIAS }}" >> android/key.properties
+        echo "keyPassword=${{ secrets.PLAY_STORE_KEY_PASSWORD }}" >> android/key.properties
+
+    - name: Deploy to Google Play Store
+      uses: r0adkll/upload-google-play@v1
+      with:
+        serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}
+        packageName: ${{ secrets.PLAY_STORE_PACKAGE_NAME }}
+        releaseFiles: build/app/outputs/bundle/release/app-release.aab
+        track: internal
+        inAppUpdatePriority: 3
+        whatsNewDirectory: distribution/whatsnew
+        mappingFile: build/app/outputs/mapping/release/mapping.txt
+
+  # Deploy to Apple App Store
+  deploy-app-store:
+    name: Deploy to App Store
+    runs-on: macos-latest
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+
+    - name: Cache Flutter dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.pub-cache
+          ${{ runner.tool_cache }}/flutter
+        key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          flutter-${{ runner.os }}-
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Setup Xcode
+      run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+    - name: Import Code-Signing Certificates
+      uses: Apple-Actions/import-codesign-certs@v1
+      with:
+        p12-file-base64: ${{ secrets.APP_STORE_CERTIFICATES_P12 }}
+        p12-password: ${{ secrets.APP_STORE_CERTIFICATES_PASSWORD }}
+
+    - name: Download Provisioning Profiles
+      run: |
+        echo "${{ secrets.APP_STORE_PROVISIONING_PROFILE }}" | base64 -d > ~/provisioning_profile.mobileprovision
+
+    - name: Install Provisioning Profile
+      run: |
+        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+        cp ~/provisioning_profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+
+    - name: Update Xcode project settings
+      run: |
+        sed -i '' 's/PROVISIONING_PROFILE_SPECIFIER = "";/PROVISIONING_PROFILE_SPECIFIER = "${{ secrets.APP_STORE_PROVISIONING_PROFILE_NAME }}";/g' ios/Runner.xcodeproj/project.pbxproj
+        sed -i '' 's/DEVELOPMENT_TEAM = "";/DEVELOPMENT_TEAM = "${{ secrets.APP_STORE_TEAM_ID }}";/g' ios/Runner.xcodeproj/project.pbxproj
+
+    - name: Build iOS
+      run: flutter build ios --release --no-codesign
+
+    - name: Create IPA
+      run: |
+        cd ios
+        xcodebuild -workspace Runner.xcworkspace -scheme Runner -configuration Release -archivePath build/Runner.xcarchive archive
+        xcodebuild -exportArchive -archivePath build/Runner.xcarchive -exportPath build/Runner -exportOptionsPlist ../ExportOptions.plist
+
+    - name: Upload to App Store Connect
+      run: |
+        xcrun altool --upload-app -f build/Runner/Runner.ipa -u ${{ secrets.APP_STORE_CONNECT_USERNAME }} -p ${{ secrets.APP_STORE_CONNECT_PASSWORD }} --type ios
+
+  # Deploy to TestFlight
+  deploy-testflight:
+    name: Deploy to TestFlight
+    runs-on: macos-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+
+    - name: Cache Flutter dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.pub-cache
+          ${{ runner.tool_cache }}/flutter
+        key: flutter-${{ runner.os }}-
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Setup Xcode
+      run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+    - name: Import Code-Signing Certificates
+      uses: Apple-Actions/import-codesign-certs@v1
+      with:
+        p12-file-base64: ${{ secrets.APP_STORE_CERTIFICATES_P12 }}
+        p12-password: ${{ secrets.APP_STORE_CERTIFICATES_PASSWORD }}
+
+    - name: Download Provisioning Profiles
+      run: |
+        echo "${{ secrets.APP_STORE_PROVISIONING_PROFILE }}" | base64 -d > ~/provisioning_profile.mobileprovision
+
+    - name: Install Provisioning Profile
+      run: |
+        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+        cp ~/provisioning_profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+
+    - name: Update Xcode project settings
+      run: |
+        sed -i '' 's/PROVISIONING_PROFILE_SPECIFIER = "";/PROVISIONING_PROFILE_SPECIFIER = "${{ secrets.APP_STORE_PROVISIONING_PROFILE_NAME }}";/g' ios/Runner.xcodeproj/project.pbxproj
+        sed -i '' 's/DEVELOPMENT_TEAM = "";/DEVELOPMENT_TEAM = "${{ secrets.APP_STORE_TEAM_ID }}";/g' ios/Runner.xcodeproj/project.pbxproj
+
+    - name: Build iOS
+      run: flutter build ios --release --no-codesign
+
+    - name: Create IPA
+      run: |
+        cd ios
+        xcodebuild -workspace Runner.xcworkspace -scheme Runner -configuration Release -archivePath build/Runner.xcarchive archive
+        xcodebuild -exportArchive -archivePath build/Runner.xcarchive -exportPath build/Runner -exportOptionsPlist ../ExportOptions.plist
+
+    - name: Upload to TestFlight
+      run: |
+        xcrun altool --upload-app -f build/Runner/Runner.ipa -u ${{ secrets.APP_STORE_CONNECT_USERNAME }} -p ${{ secrets.APP_STORE_CONNECT_PASSWORD }} --type ios
+
+  # Update Firebase Remote Config
+  update-firebase-config:
+    name: Update Firebase Remote Config
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Firebase CLI
+      run: npm install -g firebase-tools
+
+    - name: Update Remote Config
+      run: |
+        firebase functions:config:set app.version="$(git describe --tags --abbrev=0)" --project ${{ secrets.FIREBASE_PROJECT_ID }}
+        firebase deploy --only functions:config --project ${{ secrets.FIREBASE_PROJECT_ID }}
+      env:
+        FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+  # Notify deployment status
+  notify:
+    name: Notify Deployment
+    runs-on: ubuntu-latest
+    needs: [deploy-play-store, deploy-app-store, deploy-testflight, update-firebase-config]
+    if: always()
+
+    steps:
+    - name: Send notification
+      run: |
+        echo "Deployment completed with status: ${{ job.status }}"
+        # Add your notification logic here (Slack, Discord, etc.)

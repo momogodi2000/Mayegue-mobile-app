@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>853678151393-7b6ti3ehrhbtf47l14oph7k71ne8r8as.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.853678151393-7b6ti3ehrhbtf47l14oph7k71ne8r8as</string>
+	<key>API_KEY</key>
+	<string>AIzaSyD19nFd3V7ZXVg_gB5seZc8L9L3uLjPhZU</string>
+	<key>GCM_SENDER_ID</key>
+	<string>853678151393</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.mayegue.app</string>
+	<key>PROJECT_ID</key>
+	<string>studio-6750997720-7c22e</string>
+	<key>STORAGE_BUCKET</key>
+	<string>studio-6750997720-7c22e.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:853678151393:ios:e5d778801dec39b19cc9a0</string>
+</dict>
+</plist>

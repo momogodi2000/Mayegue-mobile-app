@@ -1,0 +1,215 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for common checks
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserRole() {
+      return isAuthenticated() ?
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role : null;
+    }
+
+    function isAdmin() {
+      return getUserRole() == 'admin';
+    }
+
+    function isTeacher() {
+      return getUserRole() in ['teacher', 'instructor'];
+    }
+
+    function isLearner() {
+      return getUserRole() in ['learner', 'student'];
+    }
+
+    function isTeacherOrAdmin() {
+      return isTeacher() || isAdmin();
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidLanguageCode(languageCode) {
+      return languageCode in ['ewondo', 'duala', 'bafang', 'fulfulde', 'bassa', 'bamum'];
+    }
+
+    function isValidDifficultyLevel(difficulty) {
+      return difficulty in ['beginner', 'intermediate', 'advanced', 'expert'];
+    }
+
+    function isValidReviewStatus(status) {
+      return status in ['draft', 'pendingReview', 'autoSuggested', 'verified', 'rejected'];
+    }
+
+    function isValidPartOfSpeech(pos) {
+      return pos in ['noun', 'verb', 'adjective', 'adverb', 'pronoun', 'preposition',
+                     'conjunction', 'interjection', 'article', 'determiner', 'particle'];
+    }
+
+    // User documents - users can read/write their own data, admins can read all
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidUserData();
+      allow update: if isOwner(userId) && isValidUserData() && !('role' in request.resource.data)
+                    || isAdmin();
+      allow delete: if isAdmin();
+
+      function isValidUserData() {
+        let data = request.resource.data;
+        return data.keys().hasAll(['email', 'displayName', 'role', 'createdAt']) &&
+               data.role in ['learner', 'teacher', 'admin'] &&
+               data.email is string &&
+               data.displayName is string &&
+               data.createdAt is timestamp;
+      }
+    }
+
+    // Canonical lexicon/dictionary entries
+    match /lexicon/{entryId} {
+      // Reading rules
+      allow read: if isAuthenticated() ||
+                     (resource.data.reviewStatus == 'verified');
+
+      // Creating rules - only teachers and admins can create entries
+      allow create: if isTeacherOrAdmin() && isValidDictionaryEntry();
+
+      // Updating rules
+      allow update: if (isTeacherOrAdmin() && isValidDictionaryEntry()) ||
+                       (isOwner(resource.data.contributorId) &&
+                        resource.data.reviewStatus in ['draft', 'pendingReview'] &&
+                        isValidDictionaryEntry());
+
+      // Deleting rules - only admins or original contributors can delete drafts
+      allow delete: if isAdmin() ||
+                       (isOwner(resource.data.contributorId) &&
+                        resource.data.reviewStatus == 'draft');
+
+      function isValidDictionaryEntry() {
+        let data = request.resource.data;
+        let requiredFields = ['languageCode', 'canonicalForm', 'partOfSpeech',
+                             'difficultyLevel', 'reviewStatus', 'lastUpdated'];
+
+        return data.keys().hasAll(requiredFields) &&
+               isValidLanguageCode(data.languageCode) &&
+               data.canonicalForm is string && data.canonicalForm.size() > 0 &&
+               isValidPartOfSpeech(data.partOfSpeech) &&
+               isValidDifficultyLevel(data.difficultyLevel) &&
+               isValidReviewStatus(data.reviewStatus) &&
+               data.lastUpdated is timestamp &&
+               data.qualityScore is number && data.qualityScore >= 0 && data.qualityScore <= 1 &&
+               (data.contributorId == null || data.contributorId == request.auth.uid) &&
+               isValidTranslations(data) &&
+               isValidExampleSentences(data) &&
+               isValidTags(data);
+      }
+
+      function isValidTranslations(data) {
+        return !('translations' in data) ||
+               (data.translations is map &&
+                data.translations.keys().hasAll([]) && // Allow empty translations
+                data.translations.keys().hasOnly(getValidLanguageCodes()));
+      }
+
+      function isValidExampleSentences(data) {
+        return !('exampleSentences' in data) ||
+               (data.exampleSentences is list &&
+                data.exampleSentences.size() <= 10); // Limit example sentences
+      }
+
+      function isValidTags(data) {
+        return !('tags' in data) ||
+               (data.tags is list &&
+                data.tags.size() <= 20 && // Limit tags
+                data.tags.hasOnly(getValidTags()));
+      }
+
+      function getValidLanguageCodes() {
+        return ['fr', 'en', 'ewondo', 'duala', 'bafang', 'fulfulde', 'bassa', 'bamum'];
+      }
+
+      function getValidTags() {
+        return ['family', 'greetings', 'food', 'animals', 'nature', 'body', 'colors',
+                'numbers', 'time', 'emotions', 'actions', 'objects', 'places', 'weather',
+                'clothing', 'health', 'education', 'work', 'sports', 'music', 'culture',
+                'tradition', 'ceremony', 'religion', 'basic', 'essential', 'common',
+                'formal', 'informal', 'slang', 'archaic', 'modern'];
+      }
+    }
+
+    // User progress tracking
+    match /userProgress/{progressId} {
+      allow read: if isOwner(resource.data.userId) || isTeacherOrAdmin();
+      allow create: if isAuthenticated() &&
+                       request.resource.data.userId == request.auth.uid &&
+                       isValidProgressData();
+      allow update: if isOwner(resource.data.userId) && isValidProgressData();
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+
+      function isValidProgressData() {
+        let data = request.resource.data;
+        return data.keys().hasAll(['userId', 'entryId', 'progressType', 'createdAt']) &&
+               data.userId == request.auth.uid &&
+               data.progressType in ['learned', 'practiced', 'mastered', 'reviewed'] &&
+               data.progressValue >= 0 && data.progressValue <= 1 &&
+               data.createdAt is timestamp;
+      }
+    }
+
+    // Review workflows - for teacher review of AI suggestions
+    match /reviewQueue/{queueId} {
+      allow read: if isTeacherOrAdmin();
+      allow create: if isAuthenticated() && isValidReviewItem();
+      allow update: if isTeacherOrAdmin() && isValidReviewUpdate();
+      allow delete: if isTeacherOrAdmin();
+
+      function isValidReviewItem() {
+        let data = request.resource.data;
+        return data.keys().hasAll(['entryId', 'submittedBy', 'submissionType', 'createdAt']) &&
+               data.submissionType in ['user_contribution', 'ai_suggestion', 'correction'] &&
+               data.createdAt is timestamp;
+      }
+
+      function isValidReviewUpdate() {
+        let data = request.resource.data;
+        return 'reviewedBy' in data && data.reviewedBy == request.auth.uid &&
+               'reviewStatus' in data && data.reviewStatus in ['approved', 'rejected'] &&
+               'reviewedAt' in data && data.reviewedAt is timestamp;
+      }
+    }
+
+    // Analytics and statistics (read-only for non-admins)
+    match /analytics/{analyticsId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // System configuration (admin-only)
+    match /config/{configId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // AI training data and feedback
+    match /aiTraining/{trainingId} {
+      allow read: if isTeacherOrAdmin();
+      allow create: if isAuthenticated() && isValidTrainingData();
+      allow update: if isTeacherOrAdmin();
+      allow delete: if isAdmin();
+
+      function isValidTrainingData() {
+        let data = request.resource.data;
+        return data.keys().hasAll(['type', 'content', 'feedback', 'submittedBy']) &&
+               data.type in ['vocabulary_correction', 'translation_feedback', 'pronunciation_note'] &&
+               data.submittedBy == request.auth.uid;
+      }
+    }
+
+    // Default deny rule for any unmatched documents
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
