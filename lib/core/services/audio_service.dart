@@ -1,14 +1,14 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:record/record.dart';
+// import 'package:record/record.dart';  // Temporarily disabled
 import 'package:audioplayers/audioplayers.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 /// Service for audio recording and playback functionality
 class AudioService extends ChangeNotifier {
-  final AudioRecorder _recorder = AudioRecorder();
+  // final AudioRecorder _recorder = AudioRecorder();  // Temporarily disabled
   final AudioPlayer _player = AudioPlayer();
 
   String? _currentRecordingPath;
@@ -42,7 +42,7 @@ class AudioService extends ChangeNotifier {
     _playerPositionSubscription?.cancel();
     _playerDurationSubscription?.cancel();
     _playerStateSubscription?.cancel();
-    _recorder.dispose();
+    // _recorder.dispose();  // Temporarily disabled
     _player.dispose();
     super.dispose();
   }
@@ -68,10 +68,15 @@ class AudioService extends ChangeNotifier {
   /// Start recording audio
   Future<bool> startRecording({
     String? customPath,
-    AudioEncoder encoder = AudioEncoder.aacLc,
+    // AudioEncoder encoder = AudioEncoder.aacLc,  // Temporarily disabled
     int bitRate = 128000,
     int samplingRate = 44100,
   }) async {
+    // Temporarily disabled due to record plugin issues
+    debugPrint('Recording functionality temporarily disabled');
+    return false;
+    
+    /* Original code commented out:
     try {
       // Check permission
       final hasPermission = await checkMicrophonePermission();
@@ -114,6 +119,7 @@ class AudioService extends ChangeNotifier {
       debugPrint('Error starting recording: $e');
       return false;
     }
+    */
   }
 
   /// Stop recording audio
@@ -122,6 +128,11 @@ class AudioService extends ChangeNotifier {
   }
 
   Future<String?> _stopRecording() async {
+    // Temporarily disabled due to record plugin issues
+    debugPrint('Recording functionality temporarily disabled');
+    return null;
+    
+    /* Original code commented out:
     try {
       if (!_isRecording) return null;
 
@@ -139,6 +150,7 @@ class AudioService extends ChangeNotifier {
       debugPrint('Error stopping recording: $e');
       return null;
     }
+    */
   }
 
   /// Start playback of recorded audio
@@ -292,28 +304,28 @@ class AudioService extends ChangeNotifier {
   }
 
   /// Get recording quality settings
-  RecordingQuality getRecordingQuality(AudioQuality quality) {
-    switch (quality) {
-      case AudioQuality.low:
-        return const RecordingQuality(
-          encoder: AudioEncoder.aacLc,
-          bitRate: 64000,
-          samplingRate: 22050,
-        );
-      case AudioQuality.medium:
-        return const RecordingQuality(
-          encoder: AudioEncoder.aacLc,
-          bitRate: 128000,
-          samplingRate: 44100,
-        );
-      case AudioQuality.high:
-        return const RecordingQuality(
-          encoder: AudioEncoder.aacLc,
-          bitRate: 256000,
-          samplingRate: 48000,
-        );
-    }
-  }
+  // RecordingQuality getRecordingQuality(AudioQuality quality) {  // Temporarily disabled
+  //   switch (quality) {
+  //     case AudioQuality.low:
+  //       return const RecordingQuality(
+  //         encoder: AudioEncoder.aacLc,
+  //         bitRate: 64000,
+  //         samplingRate: 22050,
+  //       );
+  //     case AudioQuality.medium:
+  //       return const RecordingQuality(
+  //         encoder: AudioEncoder.aacLc,
+  //         bitRate: 128000,
+  //         samplingRate: 44100,
+  //       );
+  //     case AudioQuality.high:
+  //       return const RecordingQuality(
+  //         encoder: AudioEncoder.aacLc,
+  //         bitRate: 256000,
+  //         samplingRate: 48000,
+  //       );
+  //   }
+  // }
 
   /// Analyze audio recording (basic implementation)
   Future<AudioAnalysis> analyzeRecording({String? audioPath}) async {
@@ -354,17 +366,17 @@ class AudioService extends ChangeNotifier {
 enum AudioQuality { low, medium, high }
 
 /// Recording quality configuration
-class RecordingQuality {
-  final AudioEncoder encoder;
-  final int bitRate;
-  final int samplingRate;
+// class RecordingQuality {  // Temporarily disabled
+//   final AudioEncoder encoder;
+//   final int bitRate;
+//   final int samplingRate;
 
-  const RecordingQuality({
-    required this.encoder,
-    required this.bitRate,
-    required this.samplingRate,
-  });
-}
+//   const RecordingQuality({
+//     required this.encoder,
+//     required this.bitRate,
+//     required this.samplingRate,
+//   });
+// }
 
 /// Audio analysis result
 class AudioAnalysis {
