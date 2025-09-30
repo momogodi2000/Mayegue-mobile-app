@@ -78,13 +78,13 @@ dependencies:
   # 🔐 Auth Providers
   google_sign_in: ^6.2.1
   flutter_facebook_auth: ^5.0.2
-  sign_in_with_apple: ^5.0.0
+  # sign_in_with_apple: ^5.0.0  # Temporarily disabled due to build issues
   # 🔧 Environment Variables
   flutter_dotenv: ^5.1.0
   # ✨ Autres
   flutter_lints: ^2.0.3
   lottie: ^3.0.0
-  speech_to_text: ^6.6.0
+  # speech_to_text: ^6.6.0  # Temporarily disabled due to build issues
   flutter_tts: ^4.2.3
 dev_dependencies:
   flutter_test:

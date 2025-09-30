@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
+// import 'package:speech_to_text/speech_to_text.dart' as stt;  // Temporarily disabled
 import 'package:flutter_tts/flutter_tts.dart';
 import '../viewmodels/ai_viewmodels.dart';
 
@@ -65,7 +65,10 @@ class _AiChatWidgetState extends State<AiChatWidget> {
   }
 
   void _sendMessage(
-      AiChatViewModel viewModel, String message, bool isFromVoice) {
+    AiChatViewModel viewModel,
+    String message,
+    bool isFromVoice,
+  ) {
     if (message.isEmpty || viewModel.currentConversation == null) return;
 
     // If from voice, add correction prompt
@@ -160,8 +163,9 @@ class _ChatMessageBubbleState extends State<_ChatMessageBubble> {
               child: Text(
                 widget.message.content,
                 style: TextStyle(
-                  color:
-                      isUser ? Colors.white : theme.textTheme.bodyLarge?.color,
+                  color: isUser
+                      ? Colors.white
+                      : theme.textTheme.bodyLarge?.color,
                 ),
               ),
             ),
@@ -200,7 +204,7 @@ class _MessageInputArea extends StatefulWidget {
 }
 
 class _MessageInputAreaState extends State<_MessageInputArea> {
-  late stt.SpeechToText _speech;
+  // late stt.SpeechToText _speech;  // Temporarily disabled
   late FlutterTts _flutterTts;
   bool _isListening = false;
   String _lastWords = '';
@@ -208,20 +212,26 @@ class _MessageInputAreaState extends State<_MessageInputArea> {
   @override
   void initState() {
     super.initState();
-    _speech = stt.SpeechToText();
+    // _speech = stt.SpeechToText();  // Temporarily disabled
     _flutterTts = FlutterTts();
     _initTts();
   }
 
   void _initTts() async {
-    await _flutterTts
-        .setLanguage("en-US"); // Default, will be changed based on language
+    await _flutterTts.setLanguage(
+      "en-US",
+    ); // Default, will be changed based on language
     await _flutterTts.setSpeechRate(0.5);
     await _flutterTts.setVolume(1.0);
     await _flutterTts.setPitch(1.0);
   }
 
   void _listen() async {
+    // Temporarily disabled due to plugin compatibility issues
+    debugPrint('Speech-to-text functionality temporarily disabled');
+    return;
+
+    /* Original code commented out:
     if (!_isListening) {
       bool available = await _speech.initialize(
         onStatus: (val) => debugPrint('onStatus: $val'),
@@ -244,6 +254,7 @@ class _MessageInputAreaState extends State<_MessageInputArea> {
         widget.onSend(_lastWords, true);
       }
     }
+    */
   }
 
   @override
@@ -253,10 +264,7 @@ class _MessageInputAreaState extends State<_MessageInputArea> {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         border: Border(
-          top: BorderSide(
-            color: Theme.of(context).dividerColor,
-            width: 1,
-          ),
+          top: BorderSide(color: Theme.of(context).dividerColor, width: 1),
         ),
       ),
       child: Row(
@@ -411,11 +419,11 @@ class _TranslationWidgetState extends State<TranslationWidget> {
     const userId = 'test-user-id';
 
     context.read<TranslationViewModel>().translate(
-          userId: userId,
-          sourceText: _sourceController.text.trim(),
-          sourceLanguage: _sourceLanguage,
-          targetLanguage: _targetLanguage,
-        );
+      userId: userId,
+      sourceText: _sourceController.text.trim(),
+      sourceLanguage: _sourceLanguage,
+      targetLanguage: _targetLanguage,
+    );
   }
 }
 
@@ -467,10 +475,7 @@ class _TranslationResult extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Translation',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('Translation', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             Text(translation.targetText),
             const SizedBox(height: 8),
