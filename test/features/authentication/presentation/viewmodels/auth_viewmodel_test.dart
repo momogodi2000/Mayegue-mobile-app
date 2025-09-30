@@ -495,6 +495,9 @@ void main() {
 
       // act
       await authViewModel.loadCurrentUser();
+      
+      // Wait for async operations to complete
+      await Future.delayed(const Duration(milliseconds: 10));
 
       // assert
       expect(authViewModel.isLoading, false);

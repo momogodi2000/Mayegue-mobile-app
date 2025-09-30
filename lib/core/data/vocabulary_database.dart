@@ -152,7 +152,7 @@ For each word, provide:
 Format: word|phonetic|english|french|definition|example|cultural_notes
 ''';
 
-      final response = await _aiService!.generateContent(prompt);
+      final response = await _aiService.generateContent(prompt);
       return _parseAIVocabularyResponse(response, language);
     } catch (e) {
       // Log error silently in production

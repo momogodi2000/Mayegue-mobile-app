@@ -7,8 +7,8 @@ import 'package:mayegue/core/sync/sync_operation.dart';
 import 'package:mayegue/features/authentication/data/datasources/auth_remote_datasource.dart';
 import 'package:mayegue/features/authentication/data/datasources/auth_local_datasource.dart';
 import 'package:mayegue/features/authentication/data/repositories/auth_repository_impl.dart';
-import 'package:mayegue/features/authentication/domain/entities/user_entity.dart';
-import 'package:mayegue/features/authentication/domain/entities/auth_response_entity.dart';
+import 'package:mayegue/features/authentication/data/models/user_model.dart';
+import 'package:mayegue/features/authentication/data/models/auth_response_model.dart';
 
 import 'auth_repository_impl_test.mocks.dart';
 
@@ -27,7 +27,7 @@ void main() {
   late MockGeneralSyncManager mockSyncManager;
 
   // Test data
-  final testUser = UserEntity(
+  final testUser = UserModel(
     id: 'test-user-id',
     email: 'test@example.com',
     displayName: 'Test User',
@@ -36,7 +36,7 @@ void main() {
     isEmailVerified: true,
   );
 
-  final testAuthResponse = AuthResponseEntity(
+  final testAuthResponse = AuthResponseModel(
     user: testUser,
     token: 'test-token',
     success: true,
@@ -518,10 +518,17 @@ void main() {
   group('AuthRepositoryImpl - Update User Profile', () {
     test('should update user profile remotely and cache locally', () async {
       // arrange
-      final updatedUser = testUser.copyWith(displayName: 'Updated Name');
+      final updatedUser = UserModel(
+        id: testUser.id,
+        email: testUser.email,
+        displayName: 'Updated Name',
+        role: testUser.role,
+        createdAt: testUser.createdAt,
+        isEmailVerified: testUser.isEmailVerified,
+      );
       when(mockRemoteDataSource.updateUserProfile(any))
           .thenAnswer((_) async => updatedUser);
-      when(mockLocalDataSource.saveUser(any))
+      when(mockLocalDataSource.saveUser(updatedUser))
           .thenAnswer((_) async => {});
 
       // act
@@ -559,7 +566,7 @@ void main() {
       // arrange
       when(mockRemoteDataSource.authStateChanges)
           .thenAnswer((_) => Stream.value(testUser));
-      when(mockLocalDataSource.saveUser(any))
+      when(mockLocalDataSource.saveUser(testUser))
           .thenAnswer((_) async => {});
 
       // act
