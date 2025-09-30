@@ -76,15 +76,19 @@ List<SingleChildWidget> appProviders = [
     create: (_) => SharedPreferences.getInstance(),
   ),
 
-  // Connectivity
-  StreamProvider<ConnectivityResult>(
-    create: (_) => Connectivity().onConnectivityChanged,
-    initialData: ConnectivityResult.none,
+  // Connectivity instance
+  Provider<Connectivity>(
+    create: (_) => Connectivity(),
+  ),
+
+  // Connectivity stream
+  ProxyProvider<Connectivity, Stream<ConnectivityResult>>(
+    update: (_, connectivity, __) => connectivity.onConnectivityChanged,
   ),
 
   // Authentication providers
-  Provider<AuthRemoteDataSource>(
-    create: (_) => AuthRemoteDataSourceImpl(FirebaseService()),
+  ProxyProvider<FirebaseService, AuthRemoteDataSource>(
+    update: (_, firebaseService, __) => AuthRemoteDataSourceImpl(firebaseService),
   ),
   Provider<AuthLocalDataSource>(
     create: (_) => AuthLocalDataSourceImpl(),
