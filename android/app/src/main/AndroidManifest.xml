@@ -35,6 +35,14 @@
             android:name="flutterEmbedding"
             android:value="2" />
             
+        <!-- Firebase Configuration -->
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+        <meta-data
+            android:name="google_app_id"
+            android:value="1:853678151393:android:c448e584dca7faac9cc9a0" />
+            
         <!-- Facebook Configuration (Optional - add your App ID if using Facebook Login) -->
         <!-- <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/> -->
         <!-- <meta-data android:name="com.facebook.sdk.ClientToken" android:value="@string/facebook_client_token"/> -->
