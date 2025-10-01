@@ -52,8 +52,8 @@ List<SingleChildWidget> appProviders = [
   ),
   Provider<AIService>(
     create: (_) => GeminiAIService(
-      apiKey: 'your-gemini-api-key',
-    ), // TODO: Move to environment config
+      apiKey: EnvironmentConfig.geminiApiKey,
+    ),
   ),
   Provider<DioClient>(create: (_) => DioClient()),
   Provider<NetworkInfo>(create: (_) => NetworkInfo(Connectivity())),
@@ -69,6 +69,31 @@ List<SingleChildWidget> appProviders = [
   // Connectivity stream
   ProxyProvider<Connectivity, Stream<ConnectivityResult>>(
     update: (_, connectivity, __) => connectivity.onConnectivityChanged,
+  ),
+
+  // Onboarding providers - MUST BE BEFORE AuthViewModel
+  Provider<OnboardingLocalDataSource>(
+    create: (_) => OnboardingLocalDataSourceImpl(),
+  ),
+  ProxyProvider<OnboardingLocalDataSource, OnboardingRepository>(
+    update: (_, localDataSource, __) =>
+        OnboardingRepositoryImpl(localDataSource),
+  ),
+  ProxyProvider<OnboardingRepository, CompleteOnboardingUsecase>(
+    update: (_, repository, __) => CompleteOnboardingUsecase(repository),
+  ),
+  ProxyProvider<OnboardingRepository, GetOnboardingStatusUsecase>(
+    update: (_, repository, __) => GetOnboardingStatusUsecase(repository),
+  ),
+  ProxyProvider2<
+    CompleteOnboardingUsecase,
+    GetOnboardingStatusUsecase,
+    OnboardingViewModel
+  >(
+    update: (_, complete, getStatus, __) => OnboardingViewModel(
+      completeOnboardingUsecase: complete,
+      getOnboardingStatusUsecase: getStatus,
+    ),
   ),
 
   // Authentication providers
@@ -178,31 +203,6 @@ List<SingleChildWidget> appProviders = [
         verifyPhoneNumberUsecase: VerifyPhoneNumberUsecase(authRepo),
       );
     },
-  ),
-
-  // Onboarding providers
-  Provider<OnboardingLocalDataSource>(
-    create: (_) => OnboardingLocalDataSourceImpl(),
-  ),
-  ProxyProvider<OnboardingLocalDataSource, OnboardingRepository>(
-    update: (_, localDataSource, __) =>
-        OnboardingRepositoryImpl(localDataSource),
-  ),
-  ProxyProvider<OnboardingRepository, CompleteOnboardingUsecase>(
-    update: (_, repository, __) => CompleteOnboardingUsecase(repository),
-  ),
-  ProxyProvider<OnboardingRepository, GetOnboardingStatusUsecase>(
-    update: (_, repository, __) => GetOnboardingStatusUsecase(repository),
-  ),
-  ProxyProvider2<
-    CompleteOnboardingUsecase,
-    GetOnboardingStatusUsecase,
-    OnboardingViewModel
-  >(
-    update: (_, complete, getStatus, __) => OnboardingViewModel(
-      completeOnboardingUsecase: complete,
-      getOnboardingStatusUsecase: getStatus,
-    ),
   ),
 
   // Dashboard ViewModels

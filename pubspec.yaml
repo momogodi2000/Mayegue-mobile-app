@@ -104,6 +104,7 @@ flutter:
   uses-material-design: true
   # 📂 Assets (images, sons, vidéos)
   assets:
+    - .env
     - assets/databases/cameroon_languages.db
     - assets/firebase/
     - assets/logo/
