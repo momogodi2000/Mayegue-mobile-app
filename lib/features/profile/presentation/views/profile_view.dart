@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../shared/providers/theme_provider.dart';
+import '../../../../shared/providers/locale_provider.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class ProfilPage extends StatefulWidget {
   final String nomUtilisateur;
@@ -39,7 +43,7 @@ class _ProfilPageState extends State<ProfilPage> {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        title: const Text("Profil"),
+        title: Text(AppLocalizations.of(context)?.profile ?? 'Profil'),
         centerTitle: true,
         backgroundColor: Colors.green.shade700,
         elevation: 0,
@@ -93,7 +97,8 @@ class _ProfilPageState extends State<ProfilPage> {
                         context,
                         MaterialPageRoute(
                           builder: (_) => ModifierProfilPage(
-                              nomUtilisateur: widget.nomUtilisateur),
+                            nomUtilisateur: widget.nomUtilisateur,
+                          ),
                         ),
                       );
                     },
@@ -106,7 +111,9 @@ class _ProfilPageState extends State<ProfilPage> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 12),
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
                     ),
                   ),
                 ],
@@ -120,11 +127,26 @@ class _ProfilPageState extends State<ProfilPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 children: [
-                  _buildInfoCard(Icons.person, "Nom", widget.nomUtilisateur),
-                  _buildInfoCard(Icons.email, "Email", "exemple@email.com"),
-                  _buildInfoCard(Icons.lock, "Mot de passe", "********"),
-                  _buildInfoCard(Icons.calendar_today, "Date d'inscription",
-                      "11 Septembre 2025"),
+                  _buildInfoCard(
+                    Icons.person,
+                    AppLocalizations.of(context)?.name ?? 'Nom',
+                    widget.nomUtilisateur,
+                  ),
+                  _buildInfoCard(
+                    Icons.email,
+                    AppLocalizations.of(context)?.email ?? 'Email',
+                    "exemple@email.com",
+                  ),
+                  _buildInfoCard(
+                    Icons.lock,
+                    AppLocalizations.of(context)?.password ?? 'Mot de passe',
+                    "********",
+                  ),
+                  _buildInfoCard(
+                    Icons.calendar_today,
+                    "Date d'inscription",
+                    "11 Septembre 2025",
+                  ),
                 ],
               ),
             ),
@@ -134,23 +156,74 @@ class _ProfilPageState extends State<ProfilPage> {
               margin: const EdgeInsets.all(16),
               elevation: 4,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Paramètres",
+                      AppLocalizations.of(context)?.settings ?? 'Paramètres',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 16),
+                    Consumer<ThemeProvider>(
+                      builder: (context, themeProvider, child) {
+                        return SwitchListTile(
+                          title: Text(
+                            AppLocalizations.of(context)?.darkMode ??
+                                'Mode sombre',
+                          ),
+                          subtitle: const Text(
+                            'Activer le thème sombre pour réduire la fatigue oculaire',
+                          ),
+                          value: themeProvider.isDarkMode,
+                          onChanged: (value) async {
+                            await themeProvider.toggleTheme();
+                          },
+                          activeColor: Colors.green.shade700,
+                          secondary: Icon(
+                            themeProvider.isDarkMode
+                                ? Icons.dark_mode
+                                : Icons.light_mode,
+                            color: Colors.green.shade700,
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    Consumer<LocaleProvider>(
+                      builder: (context, localeProvider, child) {
+                        final isFrench =
+                            localeProvider.locale.languageCode == 'fr';
+                        return ListTile(
+                          leading: const Icon(Icons.language),
+                          title: Text(
+                            AppLocalizations.of(context)?.language ?? 'Langue',
+                          ),
+                          subtitle: Text(isFrench ? 'Français' : 'English'),
+                          trailing: Switch(
+                            value: !isFrench,
+                            onChanged: (val) async {
+                              await localeProvider.toggleLocale();
+                            },
+                            activeColor: Colors.green.shade700,
+                          ),
+                          onTap: () async {
+                            await localeProvider.toggleLocale();
+                          },
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 8),
                     SwitchListTile(
-                      title: const Text("Mode économie de données"),
+                      title: const Text('Mode économie de données'),
                       subtitle: const Text(
-                          "Réduit la consommation de données en désactivant certaines fonctionnalités"),
+                        'Réduit la consommation de données en désactivant certaines fonctionnalités',
+                      ),
                       value: _dataSavingMode,
                       onChanged: (value) => _saveDataSavingMode(value),
                       activeColor: Colors.green.shade700,
@@ -189,13 +262,22 @@ class _ProfilPageState extends State<ProfilPage> {
           backgroundColor: Colors.green.shade100,
           child: Icon(icon, color: Colors.green.shade700),
         ),
-        title: Text(label,
-            style: const TextStyle(
-                fontWeight: FontWeight.bold, color: Colors.black87)),
-        subtitle: Text(value,
-            style: const TextStyle(color: Colors.black54, fontSize: 14)),
-        trailing: Icon(Icons.arrow_forward_ios,
-            size: 16, color: Colors.grey.shade400),
+        title: Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        subtitle: Text(
+          value,
+          style: const TextStyle(color: Colors.black54, fontSize: 14),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          size: 16,
+          color: Colors.grey.shade400,
+        ),
       ),
     );
   }
@@ -316,7 +398,8 @@ class _ModifierProfilPageState extends State<ModifierProfilPage> {
                     if (_formKey.currentState!.validate()) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                            content: Text("Profil mis à jour avec succès ✅")),
+                          content: Text("Profil mis à jour avec succès ✅"),
+                        ),
                       );
                       Navigator.pop(context); // Retour vers ProfilPage
                     }
@@ -325,14 +408,15 @@ class _ModifierProfilPageState extends State<ModifierProfilPage> {
                     backgroundColor: Colors.green.shade700,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Text(
                     "Enregistrer",
                     style: TextStyle(fontSize: 16, color: Colors.white),
                   ),
                 ),
-              )
+              ),
             ],
           ),
         ),

@@ -50,8 +50,47 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     final userCredential = await firebaseService.auth
         .signInWithEmailAndPassword(email: email, password: password);
 
-    final user = UserModel.fromFirebaseUser(userCredential.user!);
-    return AuthResponseModel(user: user);
+    final firebaseUser = userCredential.user;
+    if (firebaseUser == null) {
+      throw Exception('Sign in failed: No user returned');
+    }
+
+    // Update last login time in Firestore
+    final userDoc =
+        firebaseService.firestore.collection('users').doc(firebaseUser.uid);
+    final userData = await userDoc.get();
+
+    if (userData.exists) {
+      await userDoc.update({
+        'lastLoginAt': FieldValue.serverTimestamp(),
+      });
+      // Fetch complete user data from Firestore
+      final updatedUserData = await userDoc.get();
+      final user = UserModel.fromFirestore(
+        updatedUserData.data() as Map<String, dynamic>,
+        updatedUserData.id,
+      );
+      return AuthResponseModel(user: user);
+    } else {
+      // User exists in Auth but not in Firestore - create document
+      await userDoc.set({
+        'uid': firebaseUser.uid,
+        'email': firebaseUser.email,
+        'displayName': firebaseUser.displayName ?? 'User',
+        'photoURL': firebaseUser.photoURL,
+        'role': 'learner',
+        'authProvider': 'email',
+        'createdAt': FieldValue.serverTimestamp(),
+        'lastLoginAt': FieldValue.serverTimestamp(),
+        'isActive': true,
+      });
+      final newUserData = await userDoc.get();
+      final user = UserModel.fromFirestore(
+        newUserData.data() as Map<String, dynamic>,
+        newUserData.id,
+      );
+      return AuthResponseModel(user: user);
+    }
   }
 
   @override
@@ -63,9 +102,35 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     final userCredential = await firebaseService.auth
         .createUserWithEmailAndPassword(email: email, password: password);
 
-    await userCredential.user?.updateDisplayName(displayName);
+    final firebaseUser = userCredential.user;
+    if (firebaseUser == null) {
+      throw Exception('Sign up failed: No user returned');
+    }
 
-    final user = UserModel.fromFirebaseUser(userCredential.user!);
+    await firebaseUser.updateDisplayName(displayName);
+
+    // Create user document in Firestore with default role 'learner'
+    final userDoc =
+        firebaseService.firestore.collection('users').doc(firebaseUser.uid);
+    await userDoc.set({
+      'uid': firebaseUser.uid,
+      'email': firebaseUser.email,
+      'displayName': displayName,
+      'photoURL': firebaseUser.photoURL,
+      'role': 'learner', // Default role for new registrations
+      'authProvider': 'email',
+      'createdAt': FieldValue.serverTimestamp(),
+      'lastLoginAt': FieldValue.serverTimestamp(),
+      'isActive': true,
+    });
+
+    // Fetch complete user data from Firestore
+    final userData = await userDoc.get();
+    final user = UserModel.fromFirestore(
+      userData.data() as Map<String, dynamic>,
+      userData.id,
+    );
+
     return AuthResponseModel(user: user);
   }
 
@@ -84,7 +149,44 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     final userCredential = await firebaseService.auth.signInWithCredential(
       credential,
     );
-    final user = UserModel.fromFirebaseUser(userCredential.user!);
+
+    final firebaseUser = userCredential.user;
+    if (firebaseUser == null) {
+      throw Exception('Google sign-in failed: No user returned');
+    }
+
+    // Save or update user in Firestore
+    final userDoc =
+        firebaseService.firestore.collection('users').doc(firebaseUser.uid);
+    final userData = await userDoc.get();
+
+    if (!userData.exists) {
+      // Create new user document with default role 'learner'
+      await userDoc.set({
+        'uid': firebaseUser.uid,
+        'email': firebaseUser.email,
+        'displayName': firebaseUser.displayName ?? 'Google User',
+        'photoURL': firebaseUser.photoURL,
+        'role': 'learner', // Default role for new users
+        'authProvider': 'google',
+        'createdAt': FieldValue.serverTimestamp(),
+        'lastLoginAt': FieldValue.serverTimestamp(),
+        'isActive': true,
+      });
+    } else {
+      // Update last login time for existing user
+      await userDoc.update({
+        'lastLoginAt': FieldValue.serverTimestamp(),
+      });
+    }
+
+    // Fetch complete user data from Firestore
+    final updatedUserData = await userDoc.get();
+    final user = UserModel.fromFirestore(
+      updatedUserData.data() as Map<String, dynamic>,
+      updatedUserData.id,
+    );
+
     return AuthResponseModel(user: user);
   }
 
@@ -101,7 +203,44 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     final userCredential = await firebaseService.auth.signInWithCredential(
       credential,
     );
-    final user = UserModel.fromFirebaseUser(userCredential.user!);
+
+    final firebaseUser = userCredential.user;
+    if (firebaseUser == null) {
+      throw Exception('Facebook sign-in failed: No user returned');
+    }
+
+    // Save or update user in Firestore
+    final userDoc =
+        firebaseService.firestore.collection('users').doc(firebaseUser.uid);
+    final userData = await userDoc.get();
+
+    if (!userData.exists) {
+      // Create new user document with default role 'learner'
+      await userDoc.set({
+        'uid': firebaseUser.uid,
+        'email': firebaseUser.email,
+        'displayName': firebaseUser.displayName ?? 'Facebook User',
+        'photoURL': firebaseUser.photoURL,
+        'role': 'learner', // Default role for new users
+        'authProvider': 'facebook',
+        'createdAt': FieldValue.serverTimestamp(),
+        'lastLoginAt': FieldValue.serverTimestamp(),
+        'isActive': true,
+      });
+    } else {
+      // Update last login time for existing user
+      await userDoc.update({
+        'lastLoginAt': FieldValue.serverTimestamp(),
+      });
+    }
+
+    // Fetch complete user data from Firestore
+    final updatedUserData = await userDoc.get();
+    final user = UserModel.fromFirestore(
+      updatedUserData.data() as Map<String, dynamic>,
+      updatedUserData.id,
+    );
+
     return AuthResponseModel(user: user);
   }
 

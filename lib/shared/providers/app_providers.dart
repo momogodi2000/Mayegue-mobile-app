@@ -33,6 +33,7 @@ import '../../features/onboarding/domain/usecases/complete_onboarding_usecase.da
 import '../../features/onboarding/domain/usecases/get_onboarding_status_usecase.dart';
 import '../../features/onboarding/presentation/viewmodels/onboarding_viewmodel.dart';
 import '../providers/theme_provider.dart';
+import '../providers/locale_provider.dart';
 import '../../features/dashboard/presentation/viewmodels/student_dashboard_viewmodel.dart';
 import '../../features/dashboard/presentation/viewmodels/admin_dashboard_viewmodel.dart';
 import '../../features/dashboard/presentation/viewmodels/teacher_dashboard_viewmodel.dart';
@@ -41,6 +42,8 @@ import '../../features/dashboard/presentation/viewmodels/teacher_dashboard_viewm
 List<SingleChildWidget> appProviders = [
   // Theme Provider
   ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
+  // Locale Provider
+  ChangeNotifierProvider<LocaleProvider>(create: (_) => LocaleProvider()),
 
   // Core services
   Provider<EnvironmentConfig>(create: (_) => EnvironmentConfig()),
@@ -51,9 +54,7 @@ List<SingleChildWidget> appProviders = [
     create: (_) => GeneralSyncManager(networkInfo: NetworkInfo(Connectivity())),
   ),
   Provider<AIService>(
-    create: (_) => GeminiAIService(
-      apiKey: EnvironmentConfig.geminiApiKey,
-    ),
+    create: (_) => GeminiAIService(apiKey: EnvironmentConfig.geminiApiKey),
   ),
   Provider<DioClient>(create: (_) => DioClient()),
   Provider<NetworkInfo>(create: (_) => NetworkInfo(Connectivity())),

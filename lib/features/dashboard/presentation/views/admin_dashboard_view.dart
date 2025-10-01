@@ -246,8 +246,23 @@ class _AdminDashboardViewState extends State<AdminDashboardView>
           ContentModerationWidget(
             pendingContent: viewModel.pendingModerationCount,
             reportedContent: viewModel.reportedContentCount,
-            onModerateContent: (contentId, action) =>
-                viewModel.moderateContent(contentId, action),
+            approvedContent: viewModel.approvedContent,
+            pendingItems: viewModel.pendingContent,
+            onModerateContent: (contentId, action) async {
+              final ok = await viewModel.performModeration(contentId, action);
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    ok
+                        ? (action == 'approve'
+                              ? 'Content approved'
+                              : 'Content rejected')
+                        : 'Moderation failed',
+                  ),
+                ),
+              );
+            },
           ),
           const SizedBox(height: AppDimensions.spacingLarge),
 

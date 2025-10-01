@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/services/terms_service.dart';
 
 /// Terms and Conditions page that users must accept before proceeding
+/// This page is shown only once on first app launch
 class TermsAndConditionsView extends StatefulWidget {
   const TermsAndConditionsView({super.key});
 
@@ -22,11 +23,21 @@ class _TermsAndConditionsViewState extends State<TermsAndConditionsView> {
 
   void _onAcceptTerms() async {
     if (_acceptedTerms) {
-      // Store acceptance in SharedPreferences
-      await _storeTermsAcceptance();
-      // Navigate to landing page for proper onboarding flow
-      if (mounted) {
+      // Store acceptance using TermsService
+      final success = await TermsService.acceptTerms();
+
+      if (success && mounted) {
+        // Navigate to landing page for proper onboarding flow
         context.go('/landing');
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Erreur lors de l\'enregistrement. Veuillez réessayer.',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -36,20 +47,6 @@ class _TermsAndConditionsViewState extends State<TermsAndConditionsView> {
           ),
         ),
       );
-    }
-  }
-
-  Future<void> _storeTermsAcceptance() async {
-    // Store terms acceptance in SharedPreferences
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('terms_accepted', true);
-      await prefs.setString(
-        'terms_accepted_date',
-        DateTime.now().toIso8601String(),
-      );
-    } catch (e) {
-      debugPrint('Error storing terms acceptance: $e');
     }
   }
 

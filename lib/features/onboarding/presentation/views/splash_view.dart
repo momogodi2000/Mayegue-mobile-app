@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../../authentication/presentation/viewmodels/auth_viewmodel.dart';
+import '../../../../core/services/terms_service.dart';
+import '../../../../core/services/admin_initialization_service.dart';
 
 /// Splash screen with Lottie animation
 class SplashView extends StatefulWidget {
@@ -44,10 +46,27 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  void _navigateToNextScreen() {
+  Future<void> _navigateToNextScreen() async {
     final authViewModel = context.read<AuthViewModel>();
 
-    // Check if user is already authenticated
+    // PRIORITY 1: Check if admin setup is needed (first launch)
+    final needsAdminSetup =
+        await AdminInitializationService.checkAndInitializeAdmin();
+
+    if (!mounted) return;
+
+    if (needsAdminSetup) {
+      // No admin exists - redirect to admin setup
+      context.go('/admin-setup');
+      return;
+    }
+
+    // PRIORITY 2: Check if user has accepted terms
+    final hasAcceptedTerms = await TermsService.hasAcceptedTerms();
+
+    if (!mounted) return;
+
+    // PRIORITY 3: Check if user is already authenticated
     if (authViewModel.isAuthenticated) {
       // Navigate to role-based dashboard
       final userRole = authViewModel.currentUser?.role ?? 'learner';
@@ -66,8 +85,13 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
           break;
       }
     } else {
-      // Navigate to terms and conditions first, then onboarding
-      context.go('/terms-and-conditions');
+      // Show terms only if not yet accepted
+      if (!hasAcceptedTerms) {
+        context.go('/terms-and-conditions');
+      } else {
+        // Skip terms and go to landing page
+        context.go('/landing');
+      }
     }
   }
 
@@ -112,7 +136,7 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
 
               // App name
               Text(
-                'Mayègue',
+                'Ma\'a yegue',
                 style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,

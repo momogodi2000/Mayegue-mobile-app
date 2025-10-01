@@ -33,4 +33,5 @@ class Routes {
   static const String adminGuide = '/admin-guide';
   static const String teacherGuide = '/teacher-guide';
   static const String studentGuide = '/student-guide';
+  static const String adminSetup = '/admin-setup';
 }

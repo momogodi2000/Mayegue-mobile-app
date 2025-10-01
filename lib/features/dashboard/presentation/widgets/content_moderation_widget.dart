@@ -3,13 +3,17 @@ import 'package:flutter/material.dart';
 class ContentModerationWidget extends StatelessWidget {
   final int pendingContent;
   final int reportedContent;
+  final int approvedContent;
+  final List<Map<String, dynamic>>? pendingItems;
   final Function(String, String) onModerateContent;
 
   const ContentModerationWidget({
     super.key,
     required this.pendingContent,
     required this.reportedContent,
+    required this.approvedContent,
     required this.onModerateContent,
+    this.pendingItems,
   });
 
   @override
@@ -23,49 +27,57 @@ class ContentModerationWidget extends StatelessWidget {
           children: [
             const Text(
               'Content Moderation',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             Row(
               children: [
                 _buildModerationStat(
-                    'Pending Review', pendingContent.toString(), Colors.orange),
+                  'Pending Review',
+                  pendingContent.toString(),
+                  Colors.orange,
+                ),
                 const SizedBox(width: 12),
                 _buildModerationStat(
-                    'Reported', reportedContent.toString(), Colors.red),
+                  'Reported',
+                  reportedContent.toString(),
+                  Colors.red,
+                ),
                 const SizedBox(width: 12),
-                _buildModerationStat('Approved', '156', Colors.green),
+                _buildModerationStat(
+                  'Approved',
+                  approvedContent.toString(),
+                  Colors.green,
+                ),
               ],
             ),
             const SizedBox(height: 16),
             const Text(
               'Items Needing Review',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 8),
+            if ((pendingItems ?? const []).isEmpty)
+              const Text('No pending items')
+            else
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: pendingItems!.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                itemBuilder: (context, index) {
+                  final item = pendingItems![index];
+                  return _buildReviewItem(
+                    item['title']?.toString() ?? 'Content pending',
+                    item['reason']?.toString() ?? 'Pending review',
+                    (item['priority']?.toString() ?? 'low').toString(),
+                    onApprove: () =>
+                        onModerateContent(item['id'] as String, 'approve'),
+                    onReject: () =>
+                        onModerateContent(item['id'] as String, 'reject'),
+                  );
+                },
               ),
-            ),
-            const SizedBox(height: 8),
-            _buildReviewItem(
-              'User-submitted Ewondo translation',
-              'Potential inaccuracy in pronunciation guide',
-              'High',
-            ),
-            const SizedBox(height: 8),
-            _buildReviewItem(
-              'Bulu lesson content',
-              'Contains cultural sensitivity concerns',
-              'Medium',
-            ),
-            const SizedBox(height: 8),
-            _buildReviewItem(
-              'Fang vocabulary quiz',
-              'Question format needs standardization',
-              'Low',
-            ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
@@ -100,10 +112,7 @@ class ContentModerationWidget extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               label,
-              style: TextStyle(
-                fontSize: 12,
-                color: color,
-              ),
+              style: TextStyle(fontSize: 12, color: color),
               textAlign: TextAlign.center,
             ),
           ],
@@ -112,7 +121,13 @@ class ContentModerationWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildReviewItem(String title, String reason, String priority) {
+  Widget _buildReviewItem(
+    String title,
+    String reason,
+    String priority, {
+    VoidCallback? onApprove,
+    VoidCallback? onReject,
+  }) {
     Color priorityColor;
     switch (priority.toLowerCase()) {
       case 'high':
@@ -143,9 +158,7 @@ class ContentModerationWidget extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: const TextStyle(fontWeight: FontWeight.w500),
                 ),
               ),
               Container(
@@ -168,29 +181,20 @@ class ContentModerationWidget extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             reason,
-            style: const TextStyle(
-              color: Colors.grey,
-              fontSize: 12,
-            ),
+            style: const TextStyle(color: Colors.grey, fontSize: 12),
           ),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               TextButton(
-                onPressed: () {
-                  // Reject content
-                },
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.red,
-                ),
+                onPressed: onReject,
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
                 child: const Text('Reject'),
               ),
               const SizedBox(width: 8),
               ElevatedButton(
-                onPressed: () {
-                  // Approve content
-                },
+                onPressed: onApprove,
                 child: const Text('Approve'),
               ),
             ],

@@ -41,15 +41,13 @@ class _GuestDashboardViewState extends State<GuestDashboardView>
       curve: Curves.easeInOut,
     );
 
-    _cardSlideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _cardAnimationController,
-        curve: Curves.easeOutCubic,
-      ),
-    );
+    _cardSlideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _cardAnimationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
 
     _startAnimations();
 
@@ -96,195 +94,219 @@ class _GuestDashboardViewState extends State<GuestDashboardView>
 
   Widget _buildHeroSection() {
     return SliverToBoxAdapter(
-      child: AnimatedBuilder(
-        animation: _heroAnimation,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: 0.8 + (0.2 * _heroAnimation.value),
-            child: Opacity(
-              opacity: _heroAnimation.value,
-              child: Container(
-                height: MediaQuery.of(context).size.height * 0.7,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.primary,
-                      AppColors.secondary,
-                      AppColors.primary.withValues(alpha: 0.8 * 255),
-                    ],
-                  ),
-                ),
-                child: Stack(
-                  children: [
-                    // Background pattern
-                    Positioned.fill(
-                      child: Opacity(
-                        opacity: 0.1,
-                        child: Image.asset(
-                          'assets/images/cameroon_pattern.png',
-                          fit: BoxFit.cover,
-                        ),
+      child: Consumer<GuestDashboardViewModel>(
+        builder: (context, viewModel, child) {
+          final totalWords = viewModel.contentStats['totalWords'] ?? 1000;
+          final totalLanguages = viewModel.contentStats['totalLanguages'] ?? 6;
+          final totalLearners = viewModel.contentStats['totalUsers'] ?? 500;
+
+          return AnimatedBuilder(
+            animation: _heroAnimation,
+            builder: (context, animChild) {
+              return Transform.scale(
+                scale: 0.8 + (0.2 * _heroAnimation.value),
+                child: Opacity(
+                  opacity: _heroAnimation.value,
+                  child: Container(
+                    height: MediaQuery.of(context).size.height * 0.7,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppColors.primary,
+                          AppColors.secondary,
+                          AppColors.primary.withValues(alpha: 0.8 * 255),
+                        ],
                       ),
                     ),
-
-                    // Main content
-                    SafeArea(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            // Logo and title
-                            Container(
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                color:
-                                    Colors.white.withValues(alpha: 0.15 * 255),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color:
-                                      Colors.white.withValues(alpha: 0.3 * 255),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Column(
-                                children: [
-                                  const Icon(
-                                    Icons.school,
-                                    size: 80,
-                                    color: Colors.white,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'Mayegue',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .headlineLarge
-                                        ?.copyWith(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 48,
-                                        ),
-                                  ),
-                                ],
-                              ),
+                    child: Stack(
+                      children: [
+                        // Background pattern
+                        Positioned.fill(
+                          child: Opacity(
+                            opacity: 0.1,
+                            child: Image.asset(
+                              'assets/images/cameroon_pattern.png',
+                              fit: BoxFit.cover,
                             ),
+                          ),
+                        ),
 
-                            const SizedBox(height: 32),
-
-                            // Subtitle
-                            Text(
-                              'Découvrez les Langues\nTraditionnelles du Cameroun',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineSmall
-                                  ?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w500,
-                                    height: 1.3,
-                                  ),
-                            ),
-
-                            const SizedBox(height: 16),
-
-                            // Description
-                            Text(
-                              'Apprenez Ewondo, Duala, Fe\'efe\'e, Fulfulde, Bassa et Bamum\navec notre méthode interactive innovante',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge
-                                  ?.copyWith(
-                                    color: Colors.white
-                                        .withValues(alpha: 0.9 * 255),
-                                    height: 1.5,
-                                  ),
-                            ),
-
-                            const SizedBox(height: 40),
-
-                            // Action buttons
-                            Row(
+                        // Main content
+                        SafeArea(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Expanded(
-                                  child: ElevatedButton(
-                                    onPressed: () => _startDemo(),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.white,
-                                      foregroundColor: AppColors.primary,
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 16),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                // Logo and title
+                                Container(
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(
+                                      alpha: 0.15 * 255,
+                                    ),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.3 * 255,
+                                      ),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      const Icon(
+                                        Icons.school,
+                                        size: 80,
+                                        color: Colors.white,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'Ma\'a yegue',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .headlineLarge
+                                            ?.copyWith(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 48,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                const SizedBox(height: 32),
+
+                                // Subtitle
+                                Text(
+                                  'Découvrez les Langues\nTraditionnelles du Cameroun',
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                        height: 1.3,
+                                      ),
+                                ),
+
+                                const SizedBox(height: 16),
+
+                                // Description
+                                Text(
+                                  'Apprenez Ewondo, Duala, Fe\'efe\'e, Fulfulde, Bassa et Bamum\navec notre méthode interactive innovante',
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.bodyLarge
+                                      ?.copyWith(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.9 * 255,
+                                        ),
+                                        height: 1.5,
+                                      ),
+                                ),
+
+                                const SizedBox(height: 40),
+
+                                // Action buttons
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        onPressed: () => _startDemo(),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.white,
+                                          foregroundColor: AppColors.primary,
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 16,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                        ),
+                                        child: const Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.play_arrow),
+                                            SizedBox(width: 8),
+                                            Text(
+                                              'Essayer Gratuitement',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                    child: const Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.play_arrow),
-                                        SizedBox(width: 8),
-                                        Text(
-                                          'Essayer Gratuitement',
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: OutlinedButton(
+                                        onPressed: () =>
+                                            context.go('/auth/register'),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: Colors.white,
+                                          side: const BorderSide(
+                                            color: Colors.white,
+                                            width: 2,
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 16,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'S\'inscrire',
                                           style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                      ],
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: OutlinedButton(
-                                    onPressed: () =>
-                                        context.go('/auth/register'),
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: Colors.white,
-                                      side: const BorderSide(
-                                          color: Colors.white, width: 2),
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 16),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
+
+                                const SizedBox(height: 24),
+
+                                // Stats
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    _buildStatItem('$totalWords+', 'Mots'),
+                                    _buildStatItem(
+                                      '$totalLanguages',
+                                      'Langues',
                                     ),
-                                    child: const Text(
-                                      'S\'inscrire',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                    _buildStatItem(
+                                      '$totalLearners+',
+                                      'Apprenants',
                                     ),
-                                  ),
+                                  ],
                                 ),
                               ],
                             ),
-
-                            const SizedBox(height: 24),
-
-                            // Stats
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                _buildStatItem('1000+', 'Mots'),
-                                _buildStatItem('6', 'Langues'),
-                                _buildStatItem('500+', 'Apprenants'),
-                              ],
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           );
         },
       ),
@@ -324,16 +346,16 @@ class _GuestDashboardViewState extends State<GuestDashboardView>
               Text(
                 'Explorez nos Langues',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                    ),
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
                 'Découvrez la richesse culturelle du Cameroun',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.grey[600],
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
               ),
               const SizedBox(height: 32),
 
@@ -349,8 +371,8 @@ class _GuestDashboardViewState extends State<GuestDashboardView>
                 ),
                 itemCount: SupportedLanguages.languages.length,
                 itemBuilder: (context, index) {
-                  final language =
-                      SupportedLanguages.languages.values.toList()[index];
+                  final language = SupportedLanguages.languages.values
+                      .toList()[index];
                   return LanguageShowcaseCard(
                     languageName: language.name,
                     greeting: language.greeting,
@@ -372,24 +394,22 @@ class _GuestDashboardViewState extends State<GuestDashboardView>
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 24),
         padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Colors.grey[50],
-        ),
+        decoration: BoxDecoration(color: Colors.grey[50]),
         child: Column(
           children: [
             Text(
               'Leçons Démo',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               'Essayez nos leçons interactives gratuitement',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
             ),
             const SizedBox(height: 32),
 
@@ -404,11 +424,17 @@ class _GuestDashboardViewState extends State<GuestDashboardView>
                 itemBuilder: (context, index) {
                   final lesson = viewModel.demoLessons[index];
                   return DemoLessonCard(
-                    title: lesson.title,
-                    description: lesson.description,
-                    language: lesson.language,
-                    duration: lesson.duration,
-                    onTap: () => _startDemoLesson(lesson.id),
+                    title: lesson['title'] as String? ?? 'Leçon',
+                    description:
+                        lesson['description'] as String? ?? 'Description',
+                    language: lesson['language_name'] as String? ?? 'Langue',
+                    duration: (lesson['duration_minutes'] is int)
+                        ? lesson['duration_minutes'] as int
+                        : int.tryParse(
+                                (lesson['duration_minutes'] ?? '5').toString(),
+                              ) ??
+                              5,
+                    onTap: () => _startDemoLesson(lesson['id'].toString()),
                   );
                 },
               )
@@ -417,11 +443,7 @@ class _GuestDashboardViewState extends State<GuestDashboardView>
                 padding: const EdgeInsets.all(32),
                 child: Column(
                   children: [
-                    Icon(
-                      Icons.school,
-                      size: 64,
-                      color: Colors.grey[400],
-                    ),
+                    Icon(Icons.school, size: 64, color: Colors.grey[400]),
                     const SizedBox(height: 16),
                     Text(
                       'Leçons de démonstration en préparation',
@@ -485,16 +507,16 @@ class _GuestDashboardViewState extends State<GuestDashboardView>
             Text(
               'Fonctionnalités Avancées',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               'Une expérience d\'apprentissage moderne et complète',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
             ),
             const SizedBox(height: 32),
             GridView.builder(
@@ -563,9 +585,9 @@ class _GuestDashboardViewState extends State<GuestDashboardView>
             Text(
               'Ce que disent nos utilisateurs',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
             ),
             const SizedBox(height: 32),
             SizedBox(
@@ -599,16 +621,16 @@ class _GuestDashboardViewState extends State<GuestDashboardView>
             Text(
               'Tarifs Simples',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               'Choisissez l\'abonnement qui vous convient',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
             ),
             const SizedBox(height: 32),
             Row(
@@ -623,19 +645,13 @@ class _GuestDashboardViewState extends State<GuestDashboardView>
                         children: [
                           Text(
                             'Gratuit',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 16),
                           Text(
                             '0 FCFA',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineMedium
+                            style: Theme.of(context).textTheme.headlineMedium
                                 ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.primary,
@@ -668,10 +684,7 @@ class _GuestDashboardViewState extends State<GuestDashboardView>
                         gradient: const LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [
-                            AppColors.primary,
-                            AppColors.secondary,
-                          ],
+                          colors: [AppColors.primary, AppColors.secondary],
                         ),
                       ),
                       child: Padding(
@@ -680,9 +693,7 @@ class _GuestDashboardViewState extends State<GuestDashboardView>
                           children: [
                             Text(
                               'Premium',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge
+                              style: Theme.of(context).textTheme.titleLarge
                                   ?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
@@ -691,25 +702,33 @@ class _GuestDashboardViewState extends State<GuestDashboardView>
                             const SizedBox(height: 16),
                             Text(
                               '2500 FCFA/mois',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineSmall
+                              style: Theme.of(context).textTheme.headlineSmall
                                   ?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
                                   ),
                             ),
                             const SizedBox(height: 16),
-                            const Text('• Toutes les leçons',
-                                style: TextStyle(color: Colors.white)),
-                            const Text('• Dictionnaire complet',
-                                style: TextStyle(color: Colors.white)),
-                            const Text('• 6 langues',
-                                style: TextStyle(color: Colors.white)),
-                            const Text('• IA conversationnelle',
-                                style: TextStyle(color: Colors.white)),
-                            const Text('• Mode hors ligne',
-                                style: TextStyle(color: Colors.white)),
+                            const Text(
+                              '• Toutes les leçons',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            const Text(
+                              '• Dictionnaire complet',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            const Text(
+                              '• 6 langues',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            const Text(
+                              '• IA conversationnelle',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            const Text(
+                              '• Mode hors ligne',
+                              style: TextStyle(color: Colors.white),
+                            ),
                             const SizedBox(height: 24),
                             ElevatedButton(
                               onPressed: () => context.go('/auth/register'),
@@ -742,36 +761,29 @@ class _GuestDashboardViewState extends State<GuestDashboardView>
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              AppColors.primary,
-              AppColors.secondary,
-            ],
+            colors: [AppColors.primary, AppColors.secondary],
           ),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           children: [
-            const Icon(
-              Icons.rocket_launch,
-              size: 64,
-              color: Colors.white,
-            ),
+            const Icon(Icons.rocket_launch, size: 64, color: Colors.white),
             const SizedBox(height: 24),
             Text(
               'Prêt à commencer ?',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
             const SizedBox(height: 16),
             Text(
               'Rejoignez des centaines d\'apprenants qui préservent\net transmettent les langues camerounaises',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.9 * 255),
-                    height: 1.5,
-                  ),
+                color: Colors.white.withValues(alpha: 0.9 * 255),
+                height: 1.5,
+              ),
             ),
             const SizedBox(height: 32),
             Row(

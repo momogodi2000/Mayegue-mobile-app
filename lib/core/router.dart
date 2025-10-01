@@ -27,6 +27,7 @@ import '../features/dashboard/presentation/views/student_dashboard_view.dart';
 import '../features/guides/presentation/views/admin_guide_view.dart';
 import '../features/guides/presentation/views/teacher_guide_view.dart';
 import '../features/guides/presentation/views/student_guide_view.dart';
+import '../features/admin/presentation/views/admin_setup_view.dart';
 import 'constants/routes.dart';
 
 /// Global auth refresh notifier
@@ -156,6 +157,10 @@ class AppRouter {
         GoRoute(
           path: Routes.termsAndConditions,
           builder: (context, state) => const TermsAndConditionsView(),
+        ),
+        GoRoute(
+          path: Routes.adminSetup,
+          builder: (context, state) => const AdminSetupView(),
         ),
         GoRoute(
           path: Routes.landing,

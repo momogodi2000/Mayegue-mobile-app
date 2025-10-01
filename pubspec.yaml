@@ -1,5 +1,5 @@
 name: mayegue
-description: " Application d'apprentissage des langues locales (Ewondo et Bafang)Mayegue"
+description: "Ma'a yegue - Application d'apprentissage des langues traditionnelles camerounaises"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../shared/widgets/forms/custom_button.dart';
+import '../viewmodels/guest_dashboard_viewmodel.dart';
 
 /// Demo lessons view for guest users with limited free content
 class DemoLessonsView extends StatefulWidget {
@@ -13,86 +16,16 @@ class _DemoLessonsViewState extends State<DemoLessonsView> {
   int _completedLessons = 0;
   final int _maxGuestLessons = 3;
 
-  final List<Map<String, dynamic>> _demoLessons = [
-    {
-      'id': 1,
-      'title': 'Salutations en Ewondo',
-      'description': 'Apprenez à dire bonjour et au revoir',
-      'duration': '5 min',
-      'difficulty': 'Débutant',
-      'language': 'Ewondo',
-      'color': Colors.green,
-      'icon': Icons.waving_hand,
-      'isAvailable': true,
-      'content': [
-        {
-          'type': 'phrase',
-          'ewondo': 'Mboté',
-          'french': 'Bonjour',
-          'audio': 'mbote.mp3'
-        },
-        {
-          'type': 'phrase',
-          'ewondo': 'Ndôlon',
-          'french': 'Bonsoir',
-          'audio': 'ndolon.mp3'
-        },
-        {
-          'type': 'phrase',
-          'ewondo': 'Ôyônô',
-          'french': 'Au revoir',
-          'audio': 'oyono.mp3'
-        },
-      ],
-    },
-    {
-      'id': 2,
-      'title': 'Les nombres en Duala',
-      'description': 'Comptez de 1 à 10 en Duala',
-      'duration': '7 min',
-      'difficulty': 'Débutant',
-      'language': 'Duala',
-      'color': Colors.blue,
-      'icon': Icons.numbers,
-      'isAvailable': true,
-      'content': [
-        {'type': 'number', 'duala': 'Mosi', 'french': 'Un', 'number': 1},
-        {'type': 'number', 'duala': 'Bale', 'french': 'Deux', 'number': 2},
-        {'type': 'number', 'duala': 'Balalo', 'french': 'Trois', 'number': 3},
-      ],
-    },
-    {
-      'id': 3,
-      'title': 'La famille en Fulfulde',
-      'description': 'Vocabulaire familial de base',
-      'duration': '6 min',
-      'difficulty': 'Débutant',
-      'language': 'Fulfulde',
-      'color': Colors.purple,
-      'icon': Icons.family_restroom,
-      'isAvailable': true,
-      'content': [
-        {
-          'type': 'family',
-          'fulfulde': 'Baaba',
-          'french': 'Papa',
-          'audio': 'baaba.mp3'
-        },
-        {
-          'type': 'family',
-          'fulfulde': 'Yaaya',
-          'french': 'Maman',
-          'audio': 'yaaya.mp3'
-        },
-        {
-          'type': 'family',
-          'fulfulde': 'Debbo',
-          'french': 'Femme',
-          'audio': 'debbo.mp3'
-        },
-      ],
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // Load lessons from ViewModel
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<GuestDashboardViewModel>().initialize();
+    });
+  }
+
+  // No static fallback - we'll show a proper empty state instead
 
   @override
   Widget build(BuildContext context) {
@@ -119,175 +52,256 @@ class _DemoLessonsViewState extends State<DemoLessonsView> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Progress indicator
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: Colors.green.shade50,
-            child: Column(
-              children: [
-                Row(
+      body: Consumer<GuestDashboardViewModel>(
+        builder: (context, viewModel, child) {
+          final lessons = viewModel.demoLessons;
+
+          if (viewModel.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (lessons.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.school_outlined,
+                    size: 64,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Aucune leçon disponible',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Revenez plus tard pour découvrir de nouvelles leçons',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  const SizedBox(height: 24),
+                  CustomButton(
+                    text: 'Créer un compte',
+                    onPressed: () => context.go('/register'),
+                    backgroundColor: Colors.orange,
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return Column(
+            children: [
+              // Progress indicator
+              Container(
+                padding: const EdgeInsets.all(16),
+                color: Colors.green.shade50,
+                child: Column(
                   children: [
-                    const Icon(Icons.school, color: Colors.green),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Progression en mode invité',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                    Row(
+                      children: [
+                        const Icon(Icons.school, color: Colors.green),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Progression en mode invité',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                'Vous avez complété $_completedLessons sur $_maxGuestLessons leçons gratuites',
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
                           ),
-                          Text(
-                            'Vous avez complété $_completedLessons sur $_maxGuestLessons leçons gratuites',
-                            style: const TextStyle(
-                                color: Colors.grey, fontSize: 12),
-                          ),
-                        ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    LinearProgressIndicator(
+                      value: _completedLessons / _maxGuestLessons,
+                      backgroundColor: Colors.green.shade100,
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        Colors.green,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                LinearProgressIndicator(
-                  value: _completedLessons / _maxGuestLessons,
-                  backgroundColor: Colors.green.shade100,
-                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
-                ),
-              ],
-            ),
-          ),
+              ),
 
-          // Lessons list
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _demoLessons.length + 1, // +1 for upgrade card
-              itemBuilder: (context, index) {
-                if (index == _demoLessons.length) {
-                  return _buildUpgradeCard();
-                }
+              // Lessons list
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: lessons.length + 1, // +1 for upgrade card
+                  itemBuilder: (context, index) {
+                    if (index == lessons.length) {
+                      return _buildUpgradeCard();
+                    }
 
-                final lesson = _demoLessons[index];
-                final isCompleted = index < _completedLessons;
-                final isAccessible = index <= _completedLessons;
+                    final lesson = lessons[index];
+                    final isCompleted = index < _completedLessons;
+                    final isAccessible = index <= _completedLessons;
 
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  elevation: isAccessible ? 4 : 1,
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor:
-                          isAccessible ? lesson['color'] : Colors.grey,
-                      child: Icon(
-                        isCompleted ? Icons.check : lesson['icon'],
-                        color: Colors.white,
-                      ),
-                    ),
-                    title: Text(
-                      lesson['title'],
-                      style: TextStyle(
-                        color: isAccessible ? Colors.black : Colors.grey,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          lesson['description'],
-                          style: TextStyle(
-                            color: isAccessible
-                                ? Colors.grey
-                                : Colors.grey.shade400,
+                    // Extract data from map
+                    final title = lesson['title'] as String? ?? 'Leçon';
+                    final description =
+                        lesson['description'] as String? ?? 'Description';
+                    final duration = lesson['duration_minutes'] != null
+                        ? '${lesson['duration_minutes']} min'
+                        : (lesson['duration'] as String? ?? '5 min');
+                    final difficulty =
+                        lesson['difficulty_level'] as String? ??
+                        (lesson['difficulty'] as String? ?? 'Débutant');
+                    final languageName =
+                        lesson['language_name'] as String? ??
+                        (lesson['language'] as String? ?? 'Langue');
+                    final color = lesson['color'] as Color? ?? Colors.green;
+                    final icon = lesson['icon'] as IconData? ?? Icons.school;
+
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      elevation: isAccessible ? 4 : 1,
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: isAccessible ? color : Colors.grey,
+                          child: Icon(
+                            isCompleted ? Icons.check : icon,
+                            color: Colors.white,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Row(
+                        title: Text(
+                          title,
+                          style: TextStyle(
+                            color: isAccessible ? Colors.black : Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              Icons.timer,
-                              size: 14,
-                              color: isAccessible ? Colors.orange : Colors.grey,
-                            ),
-                            const SizedBox(width: 4),
                             Text(
-                              lesson['duration'],
+                              description,
                               style: TextStyle(
-                                fontSize: 12,
-                                color:
-                                    isAccessible ? Colors.orange : Colors.grey,
+                                color: isAccessible
+                                    ? Colors.grey
+                                    : Colors.grey.shade400,
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Icon(
-                              Icons.signal_cellular_alt,
-                              size: 14,
-                              color: isAccessible ? Colors.green : Colors.grey,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              lesson['difficulty'],
-                              style: TextStyle(
-                                fontSize: 12,
-                                color:
-                                    isAccessible ? Colors.green : Colors.grey,
-                              ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.timer,
+                                  size: 14,
+                                  color: isAccessible
+                                      ? Colors.orange
+                                      : Colors.grey,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  duration,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isAccessible
+                                        ? Colors.orange
+                                        : Colors.grey,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Icon(
+                                  Icons.signal_cellular_alt,
+                                  size: 14,
+                                  color: isAccessible
+                                      ? Colors.green
+                                      : Colors.grey,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  difficulty,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isAccessible
+                                        ? Colors.green
+                                        : Colors.grey,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                    trailing: isCompleted
-                        ? const Icon(Icons.check_circle, color: Colors.green)
-                        : isAccessible
-                            ? const Icon(Icons.play_circle_outline,
-                                color: Colors.green)
+                        trailing: isCompleted
+                            ? const Icon(
+                                Icons.check_circle,
+                                color: Colors.green,
+                              )
+                            : isAccessible
+                            ? const Icon(
+                                Icons.play_circle_outline,
+                                color: Colors.green,
+                              )
                             : const Icon(Icons.lock, color: Colors.grey),
-                    enabled: isAccessible,
-                    onTap: isAccessible ? () => _startLesson(lesson) : null,
-                  ),
-                );
-              },
-            ),
-          ),
+                        enabled: isAccessible,
+                        onTap: isAccessible
+                            ? () => _startLesson(
+                                lesson,
+                                color,
+                                icon,
+                                languageName,
+                              )
+                            : null,
+                      ),
+                    );
+                  },
+                ),
+              ),
 
-          // Bottom CTA
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.orange.shade50,
-              border: Border(top: BorderSide(color: Colors.orange.shade200)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.star, color: Colors.orange),
-                const SizedBox(width: 8),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Débloquez toutes les leçons',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        'Plus de 100 leçons disponibles',
-                        style: TextStyle(color: Colors.grey, fontSize: 12),
-                      ),
-                    ],
+              // Bottom CTA
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  border: Border(
+                    top: BorderSide(color: Colors.orange.shade200),
                   ),
                 ),
-                CustomButton(
-                  text: 'S\'inscrire',
-                  onPressed: () => Navigator.of(context).pushNamed('/register'),
-                  backgroundColor: Colors.orange,
+                child: Row(
+                  children: [
+                    const Icon(Icons.star, color: Colors.orange),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Débloquez toutes les leçons',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            'Plus de 100 leçons disponibles',
+                            style: TextStyle(color: Colors.grey, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                    CustomButton(
+                      text: 'S\'inscrire',
+                      onPressed: () => context.go('/register'),
+                      backgroundColor: Colors.orange,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -305,7 +319,7 @@ class _DemoLessonsViewState extends State<DemoLessonsView> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.purple.withValues(alpha: 0.3),
+            color: Colors.purple.withValues(alpha: 0.3 * 255),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -327,11 +341,7 @@ class _DemoLessonsViewState extends State<DemoLessonsView> {
           const Text(
             'Accédez à plus de 100 leçons interactives, sauvegardez votre progression et rejoignez notre communauté d\'apprentissage.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 14,
-              height: 1.4,
-            ),
+            style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.4),
           ),
           const SizedBox(height: 20),
           Row(
@@ -339,7 +349,7 @@ class _DemoLessonsViewState extends State<DemoLessonsView> {
               Expanded(
                 child: CustomButton(
                   text: 'Créer un compte',
-                  onPressed: () => Navigator.of(context).pushNamed('/register'),
+                  onPressed: () => context.go('/register'),
                   backgroundColor: Colors.white,
                   foregroundColor: Colors.purple,
                 ),
@@ -348,7 +358,7 @@ class _DemoLessonsViewState extends State<DemoLessonsView> {
               Expanded(
                 child: CustomButton(
                   text: 'Se connecter',
-                  onPressed: () => Navigator.of(context).pushNamed('/login'),
+                  onPressed: () => context.go('/login'),
                   backgroundColor: Colors.white,
                   foregroundColor: Colors.white,
                   isOutlined: true,
@@ -362,18 +372,24 @@ class _DemoLessonsViewState extends State<DemoLessonsView> {
             children: [
               Icon(Icons.check, color: Colors.white, size: 16),
               SizedBox(width: 4),
-              Text('Gratuit',
-                  style: TextStyle(color: Colors.white, fontSize: 12)),
+              Text(
+                'Gratuit',
+                style: TextStyle(color: Colors.white, fontSize: 12),
+              ),
               SizedBox(width: 16),
               Icon(Icons.check, color: Colors.white, size: 16),
               SizedBox(width: 4),
-              Text('Sans publicité',
-                  style: TextStyle(color: Colors.white, fontSize: 12)),
+              Text(
+                'Sans publicité',
+                style: TextStyle(color: Colors.white, fontSize: 12),
+              ),
               SizedBox(width: 16),
               Icon(Icons.check, color: Colors.white, size: 16),
               SizedBox(width: 4),
-              Text('Progression sauvée',
-                  style: TextStyle(color: Colors.white, fontSize: 12)),
+              Text(
+                'Progression sauvée',
+                style: TextStyle(color: Colors.white, fontSize: 12),
+              ),
             ],
           ),
         ],
@@ -381,7 +397,15 @@ class _DemoLessonsViewState extends State<DemoLessonsView> {
     );
   }
 
-  void _startLesson(Map<String, dynamic> lesson) {
+  void _startLesson(
+    Map<String, dynamic> lesson,
+    Color color,
+    IconData icon,
+    String languageName,
+  ) {
+    final title = lesson['title'] as String? ?? 'Leçon';
+    final lessonId = lesson['id'];
+
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -393,58 +417,90 @@ class _DemoLessonsViewState extends State<DemoLessonsView> {
             children: [
               CircleAvatar(
                 radius: 30,
-                backgroundColor: lesson['color'],
-                child: Icon(lesson['icon'], color: Colors.white, size: 30),
+                backgroundColor: color,
+                child: Icon(icon, color: Colors.white, size: 30),
               ),
               const SizedBox(height: 16),
               Text(
-                lesson['title'],
-                style:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                title,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
-                'Langue: ${lesson['language']}',
-                style: TextStyle(
-                    color: lesson['color'], fontWeight: FontWeight.w500),
+                'Langue: $languageName',
+                style: TextStyle(color: color, fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 20),
               // Lesson content preview
-              Container(
-                constraints: const BoxConstraints(maxHeight: 200),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: lesson['content'].length,
-                  itemBuilder: (context, index) {
-                    final item = lesson['content'][index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: ListTile(
-                        leading:
-                            const Icon(Icons.volume_up, color: Colors.green),
-                        title: Text(
-                          item[lesson['language'].toLowerCase()] ??
-                              item['ewondo'] ??
-                              item['duala'] ??
-                              item['fulfulde'] ??
-                              'Contenu',
-                        ),
-                        subtitle: Text(item['french'] ?? 'Traduction'),
-                        dense: true,
-                        onTap: () {
-                          // Simulate pronunciation
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('🔊 Prononciation jouée'),
-                              duration: Duration(seconds: 1),
+              FutureBuilder<List<Map<String, dynamic>>>(
+                future: context
+                    .read<GuestDashboardViewModel>()
+                    .getLessonContent(
+                      (lessonId is int)
+                          ? lessonId
+                          : int.tryParse(lessonId.toString()) ?? 0,
+                    ),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final lessonContent =
+                      snapshot.data ??
+                      (lesson['content'] as List<Map<String, dynamic>>?) ??
+                      [];
+
+                  if (lessonContent.isEmpty) {
+                    return const Text('Aucun contenu disponible');
+                  }
+
+                  return Container(
+                    constraints: const BoxConstraints(maxHeight: 200),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: lessonContent.length,
+                      itemBuilder: (context, index) {
+                        final item = lessonContent[index];
+                        final word =
+                            (item['word'] as String?) ??
+                            (item['ewondo'] as String?) ??
+                            (item['duala'] as String?) ??
+                            (item['fulfulde'] as String?) ??
+                            'Mot';
+                        final translation =
+                            (item['translation'] as String?) ??
+                            (item['french'] as String?) ??
+                            'Traduction';
+
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: ListTile(
+                            leading: const Icon(
+                              Icons.volume_up,
+                              color: Colors.green,
                             ),
-                          );
-                        },
-                      ),
-                    );
-                  },
-                ),
+                            title: Text(word),
+                            subtitle: Text(translation),
+                            dense: true,
+                            onTap: () {
+                              // Simulate pronunciation
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('🔊 Prononciation jouée'),
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 20),
               Row(
@@ -460,11 +516,14 @@ class _DemoLessonsViewState extends State<DemoLessonsView> {
                     child: ElevatedButton(
                       onPressed: () {
                         Navigator.of(context).pop();
-                        _completeLesson(lesson['id']);
+                        final id = (lessonId is int)
+                            ? lessonId
+                            : int.tryParse(lessonId.toString());
+                        if (id != null) {
+                          _completeLesson(id);
+                        }
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: lesson['color'],
-                      ),
+                      style: ElevatedButton.styleFrom(backgroundColor: color),
                       child: const Text('Terminer'),
                     ),
                   ),
@@ -479,9 +538,7 @@ class _DemoLessonsViewState extends State<DemoLessonsView> {
 
   void _completeLesson(int lessonId) {
     setState(() {
-      if (_completedLessons < lessonId) {
-        _completedLessons = lessonId;
-      }
+      _completedLessons = (_completedLessons + 1).clamp(0, _maxGuestLessons);
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -498,7 +555,7 @@ class _DemoLessonsViewState extends State<DemoLessonsView> {
             ? SnackBarAction(
                 label: 'S\'inscrire',
                 textColor: Colors.white,
-                onPressed: () => Navigator.of(context).pushNamed('/register'),
+                onPressed: () => context.go('/register'),
               )
             : null,
       ),
@@ -543,7 +600,7 @@ class _DemoLessonsViewState extends State<DemoLessonsView> {
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
-              Navigator.of(context).pushNamed('/register');
+              context.go('/register');
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
             child: const Text('Créer mon compte'),

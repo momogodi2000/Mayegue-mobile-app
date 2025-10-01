@@ -12,6 +12,7 @@ import 'core/database/data_seeding_service.dart';
 import 'shared/providers/app_providers.dart';
 import 'shared/themes/app_theme.dart';
 import 'shared/providers/theme_provider.dart';
+import 'shared/providers/locale_provider.dart';
 import 'l10n/app_localizations.dart';
 
 void main() async {
@@ -21,9 +22,7 @@ void main() async {
   await EnvironmentConfig.init();
 
   // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Initialize Crashlytics
   FlutterError.onError = (errorDetails) {
@@ -51,32 +50,47 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: appProviders,
-      child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, child) {
-          return MaterialApp.router(
-            debugShowCheckedModeBanner: false,
-            title: 'Mayegue',
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: themeProvider.themeMode,
-            routerConfig: AppRouter.createRouter(),
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: const [
-              Locale('en'), // English
-              Locale('fr'), // French
-            ],
+      child: Consumer2<ThemeProvider, LocaleProvider>(
+        builder: (context, themeProvider, localeProvider, child) {
+          return FutureBuilder<void>(
+            future: Future.wait([
+              themeProvider.isInitialized
+                  ? Future.value()
+                  : themeProvider.initialize(),
+              localeProvider.isInitialized
+                  ? Future.value()
+                  : localeProvider.initialize(),
+            ]),
+            builder: (context, snapshot) {
+              return MaterialApp.router(
+                debugShowCheckedModeBanner: false,
+                title: 'Ma\'a yegue',
+                theme: AppTheme.lightTheme,
+                darkTheme: AppTheme.darkTheme,
+                themeMode: themeProvider.themeMode,
+                routerConfig: AppRouter.createRouter(),
+                locale: localeProvider.locale,
+                localizationsDelegates: const [
+                  AppLocalizations.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                supportedLocales: const [Locale('en'), Locale('fr')],
+              );
+            },
           );
         },
       ),

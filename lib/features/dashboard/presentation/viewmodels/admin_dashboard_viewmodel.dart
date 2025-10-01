@@ -1,13 +1,23 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
-import '../../../../core/constants/supported_languages.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 /// ViewModel for Admin Dashboard
 class AdminDashboardViewModel extends ChangeNotifier {
+  // Dependencies
+  late FirebaseAuth _auth;
+  late FirebaseFirestore _firestore;
+
   // State
   bool _isLoading = false;
   String? _errorMessage;
-  String _adminName = 'Admin Principal';
-  String _adminRole = 'Super Admin';
+  final String _adminName = 'Admin Principal';
+  final String _adminRole = 'Super Admin';
+
+  // Firestore subscriptions
+  StreamSubscription<QuerySnapshot>? _usersSubscription;
+  StreamSubscription<QuerySnapshot>? _moderationQueueSubscription;
 
   // System Overview Data
   Map<String, dynamic> _systemHealth = {};
@@ -17,15 +27,15 @@ class AdminDashboardViewModel extends ChangeNotifier {
 
   // User Management Data
   List<Map<String, dynamic>> _users = [];
-  List<Map<String, dynamic>> _userRoles = [];
+  final List<Map<String, dynamic>> _userRoles = [];
   Map<String, int> _userStatistics = {};
-  List<Map<String, dynamic>> _recentUserActions = [];
+  final List<Map<String, dynamic>> _recentUserActions = [];
 
   // Content Management Data
   List<Map<String, dynamic>> _content = [];
   Map<String, int> _contentStatistics = {};
   List<Map<String, dynamic>> _pendingContent = [];
-  List<Map<String, dynamic>> _reportedContent = [];
+  final List<Map<String, dynamic>> _reportedContent = [];
 
   // Financial Data
   Map<String, dynamic> _financialOverview = {};
@@ -42,6 +52,12 @@ class AdminDashboardViewModel extends ChangeNotifier {
   // Reports Data
   List<Map<String, dynamic>> _availableReports = [];
   Map<String, dynamic> _reportAnalytics = {};
+
+  // Constructor
+  AdminDashboardViewModel([FirebaseAuth? auth, FirebaseFirestore? firestore]) {
+    _auth = auth ?? FirebaseAuth.instance;
+    _firestore = firestore ?? FirebaseFirestore.instance;
+  }
 
   // Getters
   bool get isLoading => _isLoading;
@@ -95,6 +111,8 @@ class AdminDashboardViewModel extends ChangeNotifier {
   int get pendingModerationCount => _pendingContent.length;
   int get reportedContentCount => _reportedContent.length;
   int get totalContent => _overviewStats['totalContent'] ?? 0;
+  int get approvedContent =>
+      _content.where((c) => c['status'] == 'published').length;
   double get monthlyRevenue =>
       (_overviewStats['monthlyRevenue'] ?? 0).toDouble();
   double get yearlyRevenue => (_overviewStats['totalRevenue'] ?? 0).toDouble();
@@ -148,52 +166,6 @@ class AdminDashboardViewModel extends ChangeNotifier {
     return totalCount > 0 ? healthyCount / totalCount : 0.0;
   }
 
-  // Methods
-  void Function(String) get onUserSearch => _onUserSearch;
-  void Function(String) get onUserFilter => _onUserFilter;
-  void Function() get onModerateContent => _onModerateContent;
-  void Function() get onRefreshStatus => _onRefreshStatus;
-
-  void _onUserSearch(String query) {
-    // Implement search
-    notifyListeners();
-  }
-
-  void _onUserFilter(String filter) {
-    // Implement filter
-    notifyListeners();
-  }
-
-  void _onModerateContent() {
-    // Implement moderate
-    notifyListeners();
-  }
-
-  void _onRefreshStatus() {
-    // Implement refresh
-    loadAdminDashboard();
-  }
-
-  void filterUsers(String query) {
-    // Implement filter
-    notifyListeners();
-  }
-
-  void moderateContent(String contentId, String action) {
-    // Implement moderate with parameters
-    notifyListeners();
-  }
-
-  void refreshSystemStatus() {
-    // Implement refresh
-    loadAdminDashboard();
-  }
-
-  int getContentCountForLanguage(String language) {
-    // Mock implementation
-    return _content.where((c) => c['language'] == language).length;
-  }
-
   /// Load admin dashboard data
   Future<void> loadAdminDashboard() async {
     _setLoading(true);
@@ -217,22 +189,178 @@ class AdminDashboardViewModel extends ChangeNotifier {
     _setLoading(false);
   }
 
+  /// User Management Functions
+  Future<bool> updateUserRole(String userId, String newRole) async {
+    _setLoading(true);
+    _clearError();
+    try {
+      await _firestore.collection('users').doc(userId).update({
+        'role': newRole,
+      });
+
+      final idx = _users.indexWhere((u) => u['id'] == userId);
+      if (idx != -1) {
+        _users[idx] = {..._users[idx], 'role': newRole};
+      }
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _setError('Erreur maj rôle: $e');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<bool> setUserActive(String userId, bool isActive) async {
+    _setLoading(true);
+    _clearError();
+    try {
+      await _firestore.collection('users').doc(userId).update({
+        'isActive': isActive,
+      });
+
+      final idx = _users.indexWhere((u) => u['id'] == userId);
+      if (idx != -1) {
+        _users[idx] = {
+          ..._users[idx],
+          'status': isActive ? 'active' : 'suspended',
+        };
+      }
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _setError('Erreur maj statut: $e');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<bool> createAdminAccount({
+    required String email,
+    required String password,
+    required String displayName,
+  }) async {
+    _setLoading(true);
+    _clearError();
+    try {
+      final currentUid = _auth.currentUser?.uid;
+      if (currentUid == null) {
+        throw Exception('Utilisateur non authentifié');
+      }
+      final cred = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      await cred.user?.updateDisplayName(displayName);
+      await _firestore.collection('users').doc(cred.user!.uid).set({
+        'uid': cred.user!.uid,
+        'email': email,
+        'displayName': displayName,
+        'role': 'admin',
+        'authProvider': 'email',
+        'createdAt': FieldValue.serverTimestamp(),
+        'createdBy': currentUid,
+        'lastLoginAt': FieldValue.serverTimestamp(),
+        'isActive': true,
+        'isSuperAdmin': false,
+        'permissions': [
+          'manage_users',
+          'manage_content',
+          'manage_teachers',
+          'view_analytics',
+        ],
+      });
+      await _loadUserManagementData();
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _setError('Erreur création admin: $e');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<bool> createTeacherAccount({
+    required String email,
+    required String password,
+    required String displayName,
+  }) async {
+    _setLoading(true);
+    _clearError();
+    try {
+      final currentUid = _auth.currentUser?.uid;
+      if (currentUid == null) {
+        throw Exception('Utilisateur non authentifié');
+      }
+      final cred = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      await cred.user?.updateDisplayName(displayName);
+      await _firestore.collection('users').doc(cred.user!.uid).set({
+        'uid': cred.user!.uid,
+        'email': email,
+        'displayName': displayName,
+        'role': 'teacher',
+        'authProvider': 'email',
+        'createdAt': FieldValue.serverTimestamp(),
+        'createdBy': currentUid,
+        'lastLoginAt': FieldValue.serverTimestamp(),
+        'isActive': true,
+        'isApproved': true,
+        'permissions': [
+          'create_content',
+          'edit_own_content',
+          'view_students',
+          'grade_assignments',
+        ],
+      });
+      await _loadUserManagementData();
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _setError('Erreur création enseignant: $e');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Helper methods
+  void _setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
+  }
+
+  void _setError(String message) {
+    _errorMessage = message;
+    notifyListeners();
+  }
+
+  void _clearError() {
+    _errorMessage = null;
+  }
+
+  // Private methods
   Future<void> _loadSystemOverview() async {
     _systemHealth = {
       'server': {
         'status': 'healthy',
         'uptime': '99.9%',
-        'lastCheck': DateTime.now()
+        'lastCheck': DateTime.now(),
       },
       'database': {
         'status': 'healthy',
         'connections': 45,
-        'lastBackup': DateTime.now().subtract(const Duration(hours: 2))
+        'lastBackup': DateTime.now().subtract(const Duration(hours: 2)),
       },
       'api': {
         'status': 'healthy',
         'responseTime': '125ms',
-        'requestsPerSecond': 342
+        'requestsPerSecond': 342,
       },
       'storage': {'status': 'warning', 'used': '78%', 'totalSpace': '2TB'},
     };
@@ -297,139 +425,83 @@ class AdminDashboardViewModel extends ChangeNotifier {
   }
 
   Future<void> _loadUserManagementData() async {
-    _users = [
-      {
-        'id': 'user_1',
-        'name': 'Jean Kamga',
-        'email': 'jean.kamga@email.com',
-        'role': 'student',
-        'status': 'active',
-        'registrationDate': DateTime.now().subtract(const Duration(days: 30)),
-        'lastActivity': DateTime.now().subtract(const Duration(minutes: 15)),
-        'subscription': 'premium',
-        'progress': 85,
-        'languages': ['ewondo', 'duala'],
-      },
-      {
-        'id': 'user_2',
-        'name': 'Prof. Marie Dubois',
-        'email': 'marie.dubois@mayegue.com',
-        'role': 'teacher',
-        'status': 'active',
-        'registrationDate': DateTime.now().subtract(const Duration(days: 180)),
-        'lastActivity': DateTime.now().subtract(const Duration(hours: 2)),
-        'subscription': 'professional',
-        'studentsCount': 156,
-        'languages': ['ewondo', 'duala', 'bafang'],
-      },
-      {
-        'id': 'user_3',
-        'name': 'Admin Système',
-        'email': 'admin@mayegue.com',
-        'role': 'admin',
-        'status': 'active',
-        'registrationDate': DateTime.now().subtract(const Duration(days: 365)),
-        'lastActivity': DateTime.now().subtract(const Duration(minutes: 5)),
-        'subscription': 'system',
-        'permissions': ['all'],
-        'languages': SupportedLanguages.languageCodes,
-      },
-    ];
+    // Cancel any existing subscription
+    await _usersSubscription?.cancel();
 
-    _userRoles = [
-      {
-        'name': 'student',
-        'displayName': 'Étudiant',
-        'permissions': ['view_content', 'take_lessons', 'play_games']
-      },
-      {
-        'name': 'teacher',
-        'displayName': 'Professeur',
-        'permissions': ['create_content', 'manage_students', 'view_analytics']
-      },
-      {
-        'name': 'admin',
-        'displayName': 'Administrateur',
-        'permissions': ['all']
-      },
-      {
-        'name': 'moderator',
-        'displayName': 'Modérateur',
-        'permissions': ['moderate_content', 'manage_users']
-      },
-    ];
+    // Subscribe to users collection
+    _usersSubscription = _firestore
+        .collection('users')
+        .limit(1000)
+        .snapshots()
+        .listen((snapshot) {
+          _users = snapshot.docs.map((d) {
+            final data = d.data();
+            return {
+              'id': d.id,
+              'uid': data['uid'] ?? d.id,
+              'name': data['displayName'] ?? '',
+              'email': data['email'] ?? '',
+              'role': (data['role'] ?? 'learner').toString(),
+              'status': (data['isActive'] == false) ? 'suspended' : 'active',
+              'registrationDate': (data['createdAt'] is Timestamp)
+                  ? (data['createdAt'] as Timestamp).toDate()
+                  : DateTime.now(),
+              'lastActivity': (data['lastLoginAt'] is Timestamp)
+                  ? (data['lastLoginAt'] as Timestamp).toDate()
+                  : null,
+              'permissions': data['permissions'] ?? [],
+            };
+          }).toList();
 
-    _userStatistics = {
-      'totalUsers': 15847,
-      'activeUsers': 12634,
-      'studentsCount': 14892,
-      'teachersCount': 942,
-      'adminsCount': 13,
-      'moderatorsCount': 45,
-      'banned': 23,
-      'premiumUsers': 8456,
-      'freeUsers': 7391,
-    };
+          // Compute statistics
+          final total = _users.length;
+          final active = _users.where((u) => u['status'] == 'active').length;
+          final students = _users
+              .where((u) => (u['role'] == 'learner' || u['role'] == 'student'))
+              .length;
+          final teachers = _users.where((u) => (u['role'] == 'teacher')).length;
+          final admins = _users.where((u) => (u['role'] == 'admin')).length;
+          final banned = _users.where((u) => u['status'] == 'suspended').length;
 
-    _recentUserActions = [
-      {
-        'id': '1',
-        'userId': 'user_1',
-        'userName': 'Jean Kamga',
-        'action': 'completed_lesson',
-        'details': 'Terminé: Salutations Ewondo',
-        'timestamp': DateTime.now().subtract(const Duration(minutes: 5)),
-      },
-      {
-        'id': '2',
-        'userId': 'user_2',
-        'userName': 'Prof. Marie Dubois',
-        'action': 'created_content',
-        'details': 'Nouveau quiz: Chiffres Bafang',
-        'timestamp': DateTime.now().subtract(const Duration(minutes: 20)),
-      },
-    ];
+          _userStatistics = {
+            'totalUsers': total,
+            'activeUsers': active,
+            'studentsCount': students,
+            'teachersCount': teachers,
+            'adminsCount': admins,
+            'moderatorsCount': 0,
+            'banned': banned,
+          };
+
+          notifyListeners();
+        });
   }
 
   Future<void> _loadContentManagementData() async {
-    _content = [
-      {
-        'id': 'content_1',
-        'title': 'Salutations Ewondo',
-        'type': 'lesson',
-        'language': 'ewondo',
-        'status': 'published',
-        'author': 'Prof. Marie Dubois',
-        'createdAt': DateTime.now().subtract(const Duration(days: 5)),
-        'views': 1247,
-        'rating': 4.8,
-        'difficulty': 'beginner',
-      },
-      {
-        'id': 'content_2',
-        'title': 'Jeu des Nombres Duala',
-        'type': 'game',
-        'language': 'duala',
-        'status': 'published',
-        'author': 'Prof. Paul Mbarga',
-        'createdAt': DateTime.now().subtract(const Duration(days: 12)),
-        'plays': 856,
-        'rating': 4.6,
-        'difficulty': 'intermediate',
-      },
-      {
-        'id': 'content_3',
-        'title': 'Quiz Famille Bafang',
-        'type': 'quiz',
-        'language': 'bafang',
-        'status': 'draft',
-        'author': 'Prof. Grace Nkomo',
-        'createdAt': DateTime.now().subtract(const Duration(hours: 3)),
-        'views': 0,
-        'rating': 0,
-        'difficulty': 'beginner',
-      },
-    ];
+    // Cancel any existing subscriptions
+    await _moderationQueueSubscription?.cancel();
+
+    // Subscribe to published content
+    final contentSnap = await _firestore
+        .collection('public_content')
+        .doc('lessons')
+        .collection('items')
+        .limit(50)
+        .get();
+    _content = contentSnap.docs
+        .map(
+          (d) => {
+            'id': d.id,
+            'title': d.data()['title'] ?? '',
+            'type': 'lesson',
+            'language': d.data()['languageCode'] ?? '',
+            'status': (d.data()['isPublic'] == true) ? 'published' : 'draft',
+            'author': d.data()['addedBy'] ?? 'admin',
+            'createdAt':
+                DateTime.tryParse(d.data()['addedAt'] ?? '') ?? DateTime.now(),
+          },
+        )
+        .toList();
 
     _contentStatistics = {
       'totalContent': 2847,
@@ -443,39 +515,31 @@ class AdminDashboardViewModel extends ChangeNotifier {
       'mediaCount': 35,
     };
 
-    _pendingContent = [
-      {
-        'id': 'pending_1',
-        'title': 'Contes Traditionnels Fulfulde',
-        'type': 'lesson',
-        'author': 'Prof. Aminatou Bello',
-        'submittedAt': DateTime.now().subtract(const Duration(hours: 6)),
-        'language': 'fulfulde',
-        'reviewRequired': true,
-      },
-      {
-        'id': 'pending_2',
-        'title': 'Proverbes Bassa',
-        'type': 'media',
-        'author': 'Prof. Samuel Ekindi',
-        'submittedAt': DateTime.now().subtract(const Duration(days: 1)),
-        'language': 'bassa',
-        'reviewRequired': true,
-      },
-    ];
-
-    _reportedContent = [
-      {
-        'id': 'report_1',
-        'contentId': 'content_456',
-        'contentTitle': 'Leçon incorrecte Bamum',
-        'reason': 'Contenu inapproprié',
-        'reportedBy': 'user_789',
-        'reportedAt': DateTime.now().subtract(const Duration(hours: 12)),
-        'status': 'pending',
-        'priority': 'medium',
-      },
-    ];
+    // Subscribe to moderation queue
+    _moderationQueueSubscription = _firestore
+        .collection('moderation_queue')
+        .where('status', isEqualTo: 'pending')
+        .limit(50)
+        .snapshots()
+        .listen((snapshot) {
+          _pendingContent = snapshot.docs.map((d) {
+            final data = d.data();
+            return {
+              'id': d.id,
+              'title': data['title'] ?? 'Pending content',
+              'type': data['type'] ?? 'content',
+              'author': data['submittedBy'] ?? 'unknown',
+              'submittedAt': (data['submittedAt'] is Timestamp)
+                  ? (data['submittedAt'] as Timestamp).toDate()
+                  : DateTime.now(),
+              'language': data['languageCode'] ?? '',
+              'reviewRequired': true,
+              'reason': data['reason'] ?? 'Pending review',
+              'priority': data['priority'] ?? 'low',
+            };
+          }).toList();
+          notifyListeners();
+        });
   }
 
   Future<void> _loadFinancialData() async {
@@ -561,11 +625,7 @@ class AdminDashboardViewModel extends ChangeNotifier {
         {'month': 'Mar', 'amount': 467000},
         {'month': 'Avr', 'amount': 485600},
       ],
-      'byPaymentMethod': {
-        'campay': 65.4,
-        'noupai': 28.7,
-        'bank_transfer': 5.9,
-      },
+      'byPaymentMethod': {'campay': 65.4, 'noupai': 28.7, 'bank_transfer': 5.9},
       'bySubscriptionType': {
         'premium': 45.2,
         'basic': 32.1,
@@ -694,311 +754,131 @@ class AdminDashboardViewModel extends ChangeNotifier {
     };
   }
 
-  /// User Management Functions
-  Future<bool> createUser(Map<String, dynamic> userData) async {
-    _setLoading(true);
-    _clearError();
-
-    try {
-      await Future.delayed(const Duration(milliseconds: 1500));
-
-      final newUser = {
-        'id': 'user_${DateTime.now().millisecondsSinceEpoch}',
-        ...userData,
-        'registrationDate': DateTime.now(),
-        'status': 'active',
-      };
-
-      _users.add(newUser);
+  // Missing methods for admin dashboard view
+  Future<void> searchUsers(String query) async {
+    if (query.isEmpty) {
+      await _loadUserManagementData();
       notifyListeners();
-      return true;
+      return;
+    }
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      _users = _users.where((user) {
+        final name = user['name']?.toString().toLowerCase() ?? '';
+        final email = user['email']?.toString().toLowerCase() ?? '';
+        final searchQuery = query.toLowerCase();
+        return name.contains(searchQuery) || email.contains(searchQuery);
+      }).toList();
     } catch (e) {
-      _setError('Erreur lors de la création de l\'utilisateur: $e');
-      return false;
+      _errorMessage = 'Erreur lors de la recherche: ${e.toString()}';
     } finally {
-      _setLoading(false);
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
-  Future<bool> updateUser(String userId, Map<String, dynamic> userData) async {
-    _setLoading(true);
-    _clearError();
+  Future<void> filterUsers(String filter) async {
+    _isLoading = true;
+    notifyListeners();
 
     try {
-      await Future.delayed(const Duration(milliseconds: 1000));
-
-      final userIndex = _users.indexWhere((user) => user['id'] == userId);
-      if (userIndex != -1) {
-        _users[userIndex] = {..._users[userIndex], ...userData};
-        notifyListeners();
-        return true;
+      if (filter == 'all') {
+        await _loadUserManagementData();
+      } else {
+        _users = _users.where((user) {
+          final role = user['role']?.toString() ?? '';
+          return role == filter;
+        }).toList();
       }
-      return false;
     } catch (e) {
-      _setError('Erreur lors de la mise à jour de l\'utilisateur: $e');
-      return false;
+      _errorMessage = 'Erreur lors du filtrage: ${e.toString()}';
     } finally {
-      _setLoading(false);
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
-  Future<bool> suspendUser(String userId, String reason) async {
-    _setLoading(true);
-    _clearError();
-
+  Future<bool> performModeration(String contentId, String action) async {
     try {
-      await Future.delayed(const Duration(milliseconds: 800));
+      _isLoading = true;
+      notifyListeners();
 
-      final userIndex = _users.indexWhere((user) => user['id'] == userId);
-      if (userIndex != -1) {
-        _users[userIndex]['status'] = 'suspended';
-        _users[userIndex]['suspensionReason'] = reason;
-        _users[userIndex]['suspendedAt'] = DateTime.now();
-        notifyListeners();
-        return true;
-      }
-      return false;
-    } catch (e) {
-      _setError('Erreur lors de la suspension de l\'utilisateur: $e');
-      return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
+      // Find the content in pending or reported lists
+      final pendingIndex = _pendingContent.indexWhere(
+        (content) => content['id'] == contentId,
+      );
+      final reportedIndex = _reportedContent.indexWhere(
+        (content) => content['id'] == contentId,
+      );
 
-  /// Content Management Functions
-  Future<bool> approveContent(String contentId) async {
-    _setLoading(true);
-    _clearError();
-
-    try {
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      final pendingIndex =
-          _pendingContent.indexWhere((content) => content['id'] == contentId);
+      Map<String, dynamic>? targetContent;
       if (pendingIndex != -1) {
-        final approvedContent = _pendingContent.removeAt(pendingIndex);
-        approvedContent['status'] = 'published';
-        approvedContent['approvedAt'] = DateTime.now();
-        _content.add(approvedContent);
-        notifyListeners();
-        return true;
+        targetContent = _pendingContent[pendingIndex];
+        _pendingContent.removeAt(pendingIndex);
+      } else if (reportedIndex != -1) {
+        targetContent = _reportedContent[reportedIndex];
+        _reportedContent.removeAt(reportedIndex);
       }
-      return false;
-    } catch (e) {
-      _setError('Erreur lors de l\'approbation du contenu: $e');
-      return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
 
-  Future<bool> rejectContent(String contentId, String reason) async {
-    _setLoading(true);
-    _clearError();
+      if (targetContent != null) {
+        if (action == 'approve') {
+          targetContent['status'] = 'published';
+          targetContent['moderatedAt'] = DateTime.now();
+          _content.add(targetContent);
+        } else if (action == 'reject') {
+          targetContent['status'] = 'rejected';
+          targetContent['moderatedAt'] = DateTime.now();
+        }
 
-    try {
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      final pendingIndex =
-          _pendingContent.indexWhere((content) => content['id'] == contentId);
-      if (pendingIndex != -1) {
-        _pendingContent[pendingIndex]['status'] = 'rejected';
-        _pendingContent[pendingIndex]['rejectionReason'] = reason;
-        _pendingContent[pendingIndex]['rejectedAt'] = DateTime.now();
-        notifyListeners();
-        return true;
+        // Update Firestore
+        await _firestore.collection('content').doc(contentId).update({
+          'status': targetContent['status'],
+          'moderatedAt': targetContent['moderatedAt'],
+          'moderatedBy': _adminName,
+        });
       }
-      return false;
-    } catch (e) {
-      _setError('Erreur lors du rejet du contenu: $e');
-      return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
 
-  /// Financial Management Functions
-  Future<bool> processRefund(
-      String transactionId, double amount, String reason) async {
-    _setLoading(true);
-    _clearError();
-
-    try {
-      await Future.delayed(const Duration(milliseconds: 1500));
-
-      // TODO: Implement actual refund processing
-      return true;
-    } catch (e) {
-      _setError('Erreur lors du traitement du remboursement: $e');
-      return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  /// System Management Functions
-  Future<bool> toggleMaintenanceMode(bool enabled) async {
-    _setLoading(true);
-    _clearError();
-
-    try {
-      await Future.delayed(const Duration(milliseconds: 800));
-
-      _systemConfig['maintenanceMode'] = enabled;
+      _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _setError('Erreur lors du basculement du mode maintenance: $e');
-      return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  Future<bool> createBackup(String type) async {
-    _setLoading(true);
-    _clearError();
-
-    try {
-      await Future.delayed(const Duration(milliseconds: 3000));
-
-      final newBackup = {
-        'id': 'backup_${DateTime.now().millisecondsSinceEpoch}',
-        'type': type,
-        'status': 'completed',
-        'size': '${(DateTime.now().millisecondsSinceEpoch % 1000 + 100)} MB',
-        'createdAt': DateTime.now(),
-        'location': 'cloud_storage',
-      };
-
-      _backups.insert(0, newBackup);
+      _errorMessage = 'Erreur lors de la modération: ${e.toString()}';
+      _isLoading = false;
       notifyListeners();
-      return true;
-    } catch (e) {
-      _setError('Erreur lors de la création de la sauvegarde: $e');
       return false;
+    }
+  }
+
+  Future<void> refreshSystemStatus() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _loadSystemOverview();
+      await _loadSystemManagementData();
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = 'Erreur lors de la mise à jour: ${e.toString()}';
     } finally {
-      _setLoading(false);
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
-  /// Reports Functions
-  Future<String?> generateReport(String reportId,
-      {Map<String, dynamic>? parameters}) async {
-    _setLoading(true);
-    _clearError();
-
-    try {
-      await Future.delayed(const Duration(milliseconds: 2500));
-
-      final reportIndex =
-          _availableReports.indexWhere((report) => report['id'] == reportId);
-      if (reportIndex != -1) {
-        _availableReports[reportIndex]['lastGenerated'] = DateTime.now();
-        notifyListeners();
-
-        return 'rapport_${reportId}_${DateTime.now().millisecondsSinceEpoch}.pdf';
-      }
-      return null;
-    } catch (e) {
-      _setError('Erreur lors de la génération du rapport: $e');
-      return null;
-    } finally {
-      _setLoading(false);
-    }
+  int getContentCountForLanguage(String languageCode) {
+    return _content.where((content) {
+      final contentLanguage = content['language']?.toString() ?? '';
+      return contentLanguage == languageCode;
+    }).length;
   }
 
-  /// Search and Filter Functions
-  void searchUsers(String query) {
-    // TODO: Implement user search
-    notifyListeners();
-  }
-
-  void filterContent(String filter) {
-    // TODO: Implement content filtering
-    notifyListeners();
-  }
-
-  void searchTransactions(String query) {
-    // TODO: Implement transaction search
-    notifyListeners();
-  }
-
-  /// Utility Functions
-  Map<String, dynamic>? getUserById(String userId) {
-    try {
-      return _users.firstWhere((user) => user['id'] == userId);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  Map<String, dynamic>? getContentById(String contentId) {
-    try {
-      return _content.firstWhere((content) => content['id'] == contentId);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  List<Map<String, dynamic>> getUsersByRole(String role) {
-    return _users.where((user) => user['role'] == role).toList();
-  }
-
-  List<Map<String, dynamic>> getContentByLanguage(String language) {
-    return _content
-        .where((content) => content['language'] == language)
-        .toList();
-  }
-
-  /// Refresh dashboard data
-  Future<void> refreshDashboard() async {
-    await loadAdminDashboard();
-  }
-
-  /// Clear all data (useful for logout)
-  void clearDashboardData() {
-    _adminName = '';
-    _adminRole = '';
-    _systemHealth = {};
-    _overviewStats = {};
-    _recentSystemActivities = [];
-    _performanceMetrics = {};
-    _users = [];
-    _userRoles = [];
-    _userStatistics = {};
-    _recentUserActions = [];
-    _content = [];
-    _contentStatistics = {};
-    _pendingContent = [];
-    _reportedContent = [];
-    _financialOverview = {};
-    _transactions = [];
-    _subscriptions = [];
-    _revenue = {};
-    _systemConfig = {};
-    _systemLogs = [];
-    _maintenanceSchedule = {};
-    _backups = [];
-    _availableReports = [];
-    _reportAnalytics = {};
-    _errorMessage = null;
-    notifyListeners();
-  }
-
-  // Helper methods
-  void _setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
-  }
-
-  void _setError(String message) {
-    _errorMessage = message;
-    notifyListeners();
-  }
-
-  void _clearError() {
-    _errorMessage = null;
+  @override
+  void dispose() {
+    _usersSubscription?.cancel();
+    _moderationQueueSubscription?.cancel();
+    super.dispose();
   }
 }

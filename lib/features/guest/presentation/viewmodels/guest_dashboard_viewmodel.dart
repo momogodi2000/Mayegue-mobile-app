@@ -1,110 +1,135 @@
 import 'package:flutter/material.dart';
-import '../../../../features/languages/domain/entities/language_entity.dart';
-import '../../../../features/lessons/domain/entities/lesson_entity.dart';
+import '../../../../core/services/guest_content_service.dart';
 
-/// ViewModel for Guest Dashboard
+/// ViewModel for Guest Dashboard - Uses real SQLite + Firebase data
 class GuestDashboardViewModel extends ChangeNotifier {
-  List<LanguageEntity> _featuredLanguages = [];
-  List<LessonEntity> _demoLessons = [];
+  List<Map<String, dynamic>> _availableLanguages = [];
+  List<Map<String, dynamic>> _demoLessons = [];
+  List<Map<String, dynamic>> _basicWords = [];
+  List<Map<String, dynamic>> _categories = [];
+  Map<String, int> _contentStats = {};
+
   bool _isLoading = false;
+  String? _errorMessage;
 
-  List<LanguageEntity> get featuredLanguages => _featuredLanguages;
-  List<LessonEntity> get demoLessons => _demoLessons;
+  // Getters
+  List<Map<String, dynamic>> get availableLanguages => _availableLanguages;
+  List<Map<String, dynamic>> get demoLessons => _demoLessons;
+  List<Map<String, dynamic>> get basicWords => _basicWords;
+  List<Map<String, dynamic>> get categories => _categories;
+  Map<String, int> get contentStats => _contentStats;
   bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
+  bool get hasError => _errorMessage != null;
 
+  /// Initialize guest content from SQLite + Firebase
   Future<void> initialize() async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     try {
-      // Load featured languages
-      _featuredLanguages = [
-        LanguageEntity(
-          id: 'ewondo',
-          name: 'Ewondo',
-          group: 'Beti-Pahuin',
-          region: 'Central',
-          type: 'Primary',
-          status: 'active',
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-        LanguageEntity(
-          id: 'dualala',
-          name: 'Duala',
-          group: 'Coastal Bantu',
-          region: 'Littoral',
-          type: 'Commercial',
-          status: 'active',
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-        LanguageEntity(
-          id: 'feefe',
-          name: 'Fe\'efe\'e',
-          group: 'Grassfields',
-          region: 'West',
-          type: 'Heritage',
-          status: 'active',
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-      ];
+      // Load all guest content in parallel
+      final results = await Future.wait([
+        GuestContentService.getAvailableLanguages(),
+        GuestContentService.getDemoLessons(languageCode: 'fr', limit: 5),
+        GuestContentService.getBasicWords(languageCode: 'fr'),
+        GuestContentService.getCategories(languageCode: 'fr'),
+        GuestContentService.getContentStats(languageCode: 'fr'),
+      ]);
 
-      // Load demo lessons
-      _demoLessons = [
-        LessonEntity(
-          id: 'demo-1',
-          title: 'Greetings in Ewondo',
-          description: 'Learn basic greetings',
-          language: 'ewondo',
-          difficulty: 'Beginner',
-          duration: 10,
-          category: 'Basics',
-          objectives: const ['Learn basic greetings'],
-          isPremium: false,
-          order: 1,
-          chapterId: 'chapter-1',
-          exercises: const [],
-          metadata: const {},
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-        LessonEntity(
-          id: 'demo-2',
-          title: 'Numbers in Duala',
-          description: 'Count from 1 to 10',
-          language: 'dualala',
-          difficulty: 'Beginner',
-          duration: 15,
-          category: 'Basics',
-          objectives: const ['Learn numbers 1-10'],
-          isPremium: false,
-          order: 1,
-          chapterId: 'chapter-1',
-          exercises: const [],
-          metadata: const {},
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-      ];
+      _availableLanguages = results[0] as List<Map<String, dynamic>>;
+      _demoLessons = results[1] as List<Map<String, dynamic>>;
+      _basicWords = results[2] as List<Map<String, dynamic>>;
+      _categories = results[3] as List<Map<String, dynamic>>;
+      _contentStats = results[4] as Map<String, int>;
     } catch (e) {
-      // Handle error
+      _errorMessage = 'Erreur lors du chargement du contenu: $e';
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  void selectLanguage(String languageId) {
-    // Navigate to language selection
+  /// Load words by language
+  Future<void> loadWordsByLanguage(String languageCode) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      _basicWords = await GuestContentService.getBasicWords(
+        languageCode: languageCode,
+      );
+    } catch (e) {
+      _errorMessage = 'Erreur lors du chargement des mots: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
-  void startDemoLesson(String lessonId) {
-    // Navigate to demo lesson
+  /// Load words by category
+  Future<void> loadWordsByCategory(int categoryId) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      _basicWords = await GuestContentService.getWordsByCategory(
+        categoryId,
+        limit: 50,
+      );
+    } catch (e) {
+      _errorMessage = 'Erreur lors du chargement des mots: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
-  void navigateToSignUp() {
-    // Navigate to sign up
+  /// Get basic words for a language
+  Future<List<Map<String, dynamic>>> getBasicWords({
+    String? languageCode,
+  }) async {
+    try {
+      return await GuestContentService.getBasicWords(
+        languageCode: languageCode ?? 'fr',
+      );
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// Search words
+  Future<List<Map<String, dynamic>>> searchWords(String searchTerm) async {
+    try {
+      return await GuestContentService.searchWords(
+        query: searchTerm,
+        languageCode: 'fr',
+        limit: 30,
+      );
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// Get lesson content/chapters
+  Future<List<Map<String, dynamic>>> getLessonContent(int lessonId) async {
+    try {
+      final lesson = await GuestContentService.getLessonContent(lessonId);
+      return [lesson]; // Wrap in list as expected by return type
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// Clear error message
+  void clearError() {
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  /// Refresh all content
+  Future<void> refresh() async {
+    await initialize();
   }
 }

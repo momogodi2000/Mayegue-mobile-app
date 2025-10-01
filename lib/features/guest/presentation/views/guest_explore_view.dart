@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../shared/widgets/forms/custom_button.dart';
+import '../../../../core/constants/supported_languages.dart';
+import '../viewmodels/guest_dashboard_viewmodel.dart';
 
 /// Guest exploration view showcasing language features without registration
 class GuestExploreView extends StatefulWidget {
@@ -14,59 +18,17 @@ class _GuestExploreViewState extends State<GuestExploreView>
   late TabController _tabController;
   int _selectedLanguageIndex = 0;
 
-  final List<Map<String, dynamic>> _languages = [
-    {
-      'name': 'Ewondo',
-      'greeting': 'Mboté!',
-      'color': Colors.green,
-      'region': 'Centre',
-      'speakers': '1.5M',
-      'basicWords': [
-        'Mboté (Salut)',
-        'Akiba (Merci)',
-        'Nti (Oui)',
-        'Ayi (Non)'
-      ],
-      'culturalInfo':
-          'Langue principale des Beti-Pahuin, parlée dans la région du Centre.',
-    },
-    {
-      'name': 'Duala',
-      'greeting': 'Mboló!',
-      'color': Colors.blue,
-      'region': 'Littoral',
-      'speakers': '2M',
-      'basicWords': [
-        'Mboló (Salut)',
-        'Massu (Merci)',
-        'Eyô (Oui)',
-        'Baé (Non)'
-      ],
-      'culturalInfo':
-          'Langue côtière historique, importante pour le commerce maritime.',
-    },
-    {
-      'name': 'Fulfulde',
-      'greeting': 'Jaaraama!',
-      'color': Colors.purple,
-      'region': 'Nord',
-      'speakers': '3.5M',
-      'basicWords': [
-        'Jaaraama (Salut)',
-        'A jaaraama (Merci)',
-        'Eey (Oui)',
-        'Alaa (Non)'
-      ],
-      'culturalInfo':
-          'Langue des éleveurs nomades, riche en poésie traditionnelle.',
-    },
-  ];
-
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    // Initialize ViewModel
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<GuestDashboardViewModel>().initialize();
+    });
   }
+
+  // Removed unused static fallback languages; using SupportedLanguages instead
 
   @override
   void dispose() {
@@ -111,12 +73,14 @@ class _GuestExploreViewState extends State<GuestExploreView>
               child: Text(
                 'Mode invité : fonctionnalités limitées',
                 style: TextStyle(
-                    color: Colors.orange, fontWeight: FontWeight.w500),
+                  color: Colors.orange,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
             CustomButton(
               text: 'Débloquer',
-              onPressed: () => Navigator.of(context).pushNamed('/register'),
+              onPressed: () => context.go('/register'),
               backgroundColor: Colors.orange,
             ),
           ],
@@ -141,19 +105,20 @@ class _GuestExploreViewState extends State<GuestExploreView>
           SizedBox(
             height: 200,
             child: PageView.builder(
-              itemCount: _languages.length,
+              itemCount: SupportedLanguages.languages.length,
               onPageChanged: (index) {
                 setState(() {
                   _selectedLanguageIndex = index;
                 });
               },
               itemBuilder: (context, index) {
-                final language = _languages[index];
+                final language = SupportedLanguages.languages.values
+                    .toList()[index];
                 return Container(
                   margin: const EdgeInsets.symmetric(horizontal: 8),
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: language['color'],
+                    color: language.color,
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
@@ -167,7 +132,7 @@ class _GuestExploreViewState extends State<GuestExploreView>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        language['name'],
+                        language.name,
                         style: const TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
@@ -176,7 +141,7 @@ class _GuestExploreViewState extends State<GuestExploreView>
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        language['greeting'],
+                        language.greeting,
                         style: const TextStyle(
                           fontSize: 24,
                           color: Colors.white70,
@@ -188,13 +153,17 @@ class _GuestExploreViewState extends State<GuestExploreView>
                         children: [
                           Column(
                             children: [
-                              const Icon(Icons.location_on,
-                                  color: Colors.white),
+                              const Icon(
+                                Icons.location_on,
+                                color: Colors.white,
+                              ),
                               const SizedBox(height: 4),
                               Text(
-                                language['region'],
+                                language.region,
                                 style: const TextStyle(
-                                    color: Colors.white, fontSize: 12),
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
                               ),
                             ],
                           ),
@@ -203,9 +172,11 @@ class _GuestExploreViewState extends State<GuestExploreView>
                               const Icon(Icons.people, color: Colors.white),
                               const SizedBox(height: 4),
                               Text(
-                                '${language['speakers']} locuteurs',
+                                '${language.speakers} locuteurs',
                                 style: const TextStyle(
-                                    color: Colors.white, fontSize: 12),
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
                               ),
                             ],
                           ),
@@ -237,13 +208,20 @@ class _GuestExploreViewState extends State<GuestExploreView>
                 ),
                 const SizedBox(height: 12),
                 _buildQuickStartItem(
-                    Icons.volume_up,
-                    'Écoutez la prononciation',
-                    'Apprenez les sons authentiques'),
-                _buildQuickStartItem(Icons.translate, 'Mots de base',
-                    'Découvrez le vocabulaire essentiel'),
+                  Icons.volume_up,
+                  'Écoutez la prononciation',
+                  'Apprenez les sons authentiques',
+                ),
                 _buildQuickStartItem(
-                    Icons.quiz, 'Mini-quiz', 'Testez vos connaissances'),
+                  Icons.translate,
+                  'Mots de base',
+                  'Découvrez le vocabulaire essentiel',
+                ),
+                _buildQuickStartItem(
+                  Icons.quiz,
+                  'Mini-quiz',
+                  'Testez vos connaissances',
+                ),
                 const SizedBox(height: 12),
                 CustomButton(
                   text: 'Commencer l\'exploration',
@@ -262,7 +240,8 @@ class _GuestExploreViewState extends State<GuestExploreView>
   }
 
   Widget _buildVocabularyTab() {
-    final selectedLanguage = _languages[_selectedLanguageIndex];
+    final selectedLanguage = SupportedLanguages.languages.values
+        .toList()[_selectedLanguageIndex];
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -270,29 +249,102 @@ class _GuestExploreViewState extends State<GuestExploreView>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Vocabulaire de base - ${selectedLanguage['name']}',
+            'Vocabulaire de base - ${selectedLanguage.name}',
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
 
-          // Basic words list
-          ...selectedLanguage['basicWords'].map<Widget>((word) {
-            return Card(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: selectedLanguage['color'],
-                  child: const Icon(Icons.volume_up, color: Colors.white),
-                ),
-                title: Text(word),
-                subtitle: const Text('Touchez pour écouter la prononciation'),
-                trailing: const Icon(Icons.favorite_border),
-                onTap: () {
-                  _showGuestFeatureDialog('prononciation');
-                },
-              ),
-            );
-          }).toList(),
+          // Basic words list from GuestContentService
+          FutureBuilder<List<Map<String, dynamic>>>(
+            future: context.read<GuestDashboardViewModel>().getBasicWords(
+              languageCode: selectedLanguage.code,
+            ),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(32.0),
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+
+              if (snapshot.hasError) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          size: 48,
+                          color: Colors.red,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Erreur de chargement: ${snapshot.error}',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              final words = snapshot.data ?? [];
+              if (words.isEmpty) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(32.0),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.translate_outlined,
+                          size: 48,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'Aucun mot disponible',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Revenez plus tard pour découvrir de nouveaux mots',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              return Column(
+                children: words.map<Widget>((word) {
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: selectedLanguage.color,
+                        child: const Icon(Icons.volume_up, color: Colors.white),
+                      ),
+                      title: Text(word['word'] ?? ''),
+                      subtitle: Text(word['translation'] ?? ''),
+                      trailing: const Icon(Icons.favorite_border),
+                      onTap: () {
+                        _showGuestFeatureDialog('prononciation');
+                      },
+                    ),
+                  );
+                }).toList(),
+              );
+            },
+          ),
 
           const SizedBox(height: 24),
 
@@ -321,7 +373,7 @@ class _GuestExploreViewState extends State<GuestExploreView>
                 const SizedBox(height: 12),
                 CustomButton(
                   text: 'Voir tout le vocabulaire',
-                  onPressed: () => Navigator.of(context).pushNamed('/register'),
+                  onPressed: () => context.go('/register'),
                   backgroundColor: Colors.blue,
                 ),
               ],
@@ -333,7 +385,8 @@ class _GuestExploreViewState extends State<GuestExploreView>
   }
 
   Widget _buildCultureTab() {
-    final selectedLanguage = _languages[_selectedLanguageIndex];
+    final selectedLanguage = SupportedLanguages.languages.values
+        .toList()[_selectedLanguageIndex];
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -341,7 +394,7 @@ class _GuestExploreViewState extends State<GuestExploreView>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Culture - ${selectedLanguage['name']}',
+            'Culture - ${selectedLanguage.name}',
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
@@ -355,18 +408,20 @@ class _GuestExploreViewState extends State<GuestExploreView>
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.museum, color: selectedLanguage['color']),
+                      Icon(Icons.museum, color: selectedLanguage.color),
                       const SizedBox(width: 8),
                       const Text(
                         'Contexte culturel',
                         style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    selectedLanguage['culturalInfo'],
+                    selectedLanguage.culturalInfo,
                     style: const TextStyle(fontSize: 16, height: 1.4),
                   ),
                 ],
@@ -383,14 +438,26 @@ class _GuestExploreViewState extends State<GuestExploreView>
           ),
           const SizedBox(height: 12),
 
-          _buildCultureItem('🎵', 'Musique traditionnelle',
-              'Découvrez les rythmes ancestraux'),
           _buildCultureItem(
-              '🍽️', 'Cuisine locale', 'Plats typiques de la région'),
+            '🎵',
+            'Musique traditionnelle',
+            'Découvrez les rythmes ancestraux',
+          ),
           _buildCultureItem(
-              '🎭', 'Contes et légendes', 'Histoires transmises oralement'),
+            '🍽️',
+            'Cuisine locale',
+            'Plats typiques de la région',
+          ),
           _buildCultureItem(
-              '🎪', 'Fêtes traditionnelles', 'Célébrations communautaires'),
+            '🎭',
+            'Contes et légendes',
+            'Histoires transmises oralement',
+          ),
+          _buildCultureItem(
+            '🎪',
+            'Fêtes traditionnelles',
+            'Célébrations communautaires',
+          ),
 
           const SizedBox(height: 24),
 
@@ -419,7 +486,7 @@ class _GuestExploreViewState extends State<GuestExploreView>
                 const SizedBox(height: 12),
                 CustomButton(
                   text: 'Accéder au contenu complet',
-                  onPressed: () => Navigator.of(context).pushNamed('/register'),
+                  onPressed: () => context.go('/register'),
                   backgroundColor: Colors.purple,
                 ),
               ],
@@ -441,10 +508,14 @@ class _GuestExploreViewState extends State<GuestExploreView>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style: const TextStyle(fontWeight: FontWeight.w500)),
-                Text(description,
-                    style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.w500),
+                ),
+                Text(
+                  description,
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
               ],
             ),
           ),
@@ -498,7 +569,7 @@ class _GuestExploreViewState extends State<GuestExploreView>
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
-              Navigator.of(context).pushNamed('/demo-lessons');
+              context.go('/demo-lessons');
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
             child: const Text('Essayer'),
@@ -538,7 +609,7 @@ class _GuestExploreViewState extends State<GuestExploreView>
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
-              Navigator.of(context).pushNamed('/register');
+              context.go('/register');
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
             child: const Text('S\'inscrire'),
