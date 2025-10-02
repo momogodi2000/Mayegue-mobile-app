@@ -19,39 +19,56 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize environment configuration
-  await EnvironmentConfig.init();
+  try {
+    await EnvironmentConfig.init();
+  } catch (e) {
+    debugPrint('Error initializing environment config: $e');
+    // Continue without environment config - app should still work
+  }
 
-  // Initialize Firebase
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Initialize Firebase with error handling
+  try {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Initialize Crashlytics
-  FlutterError.onError = (errorDetails) {
-    FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
-  };
+    // Initialize Crashlytics
+    FlutterError.onError = (errorDetails) {
+      FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+    };
 
-  // Pass all uncaught asynchronous errors to Crashlytics
-  PlatformDispatcher.instance.onError = (error, stack) {
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-    return true;
-  };
+    // Pass all uncaught asynchronous errors to Crashlytics
+    PlatformDispatcher.instance.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
+  } catch (e) {
+    debugPrint('Error initializing Firebase: $e');
+    // Continue without Firebase - app should work in offline mode
+  }
 
-  // Initialize databases and seed data
+  // Initialize databases and seed data with improved error handling
+  bool databasesInitialized = false;
   try {
     // Initialize the pre-built Cameroon languages database
     await DatabaseInitializationService.database;
 
     // Seed the main app database with initial data
     await DataSeedingService.seedDatabase();
+
+    databasesInitialized = true;
+    debugPrint('Databases initialized successfully');
   } catch (e) {
     // Log error but don't crash the app
     debugPrint('Error initializing databases: $e');
+    // App will continue with limited functionality
   }
 
-  runApp(const MyApp());
+  runApp(MyApp(databasesInitialized: databasesInitialized));
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, this.databasesInitialized = false});
+
+  final bool databasesInitialized;
 
   @override
   State<MyApp> createState() => _MyAppState();

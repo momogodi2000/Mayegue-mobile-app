@@ -49,47 +49,63 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
   Future<void> _navigateToNextScreen() async {
     final authViewModel = context.read<AuthViewModel>();
 
-    // PRIORITY 1: Check if admin setup is needed (first launch)
-    final needsAdminSetup =
-        await AdminInitializationService.checkAndInitializeAdmin();
+    try {
+      // PRIORITY 1: Check if admin setup is needed (first launch)
+      final needsAdminSetup =
+          await AdminInitializationService.checkAndInitializeAdmin().catchError((error) {
+        debugPrint('Error checking admin initialization: $error');
+        return false; // Default to no admin setup needed
+      });
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    if (needsAdminSetup) {
-      // No admin exists - redirect to admin setup
-      context.go('/admin-setup');
-      return;
-    }
-
-    // PRIORITY 2: Check if user has accepted terms
-    final hasAcceptedTerms = await TermsService.hasAcceptedTerms();
-
-    if (!mounted) return;
-
-    // PRIORITY 3: Check if user is already authenticated
-    if (authViewModel.isAuthenticated) {
-      // Navigate to role-based dashboard
-      final userRole = authViewModel.currentUser?.role ?? 'learner';
-      switch (userRole.toLowerCase()) {
-        case 'admin':
-          context.go('/admin-dashboard');
-          break;
-        case 'teacher':
-        case 'instructor':
-          context.go('/teacher-dashboard');
-          break;
-        case 'learner':
-        case 'student':
-        default:
-          context.go('/dashboard');
-          break;
+      if (needsAdminSetup) {
+        // No admin exists - redirect to admin setup
+        context.go('/admin-setup');
+        return;
       }
-    } else {
-      // Show terms only if not yet accepted
-      if (!hasAcceptedTerms) {
-        context.go('/terms-and-conditions');
+
+      // PRIORITY 2: Check if user has accepted terms
+      final hasAcceptedTerms = await TermsService.hasAcceptedTerms().catchError((error) {
+        debugPrint('Error checking terms acceptance: $error');
+        return false; // Default to terms not accepted
+      });
+
+      if (!mounted) return;
+
+      // PRIORITY 3: Check if user is already authenticated
+      if (authViewModel.isAuthenticated) {
+        // Navigate to role-based dashboard
+        final userRole = authViewModel.currentUser?.role ?? 'learner';
+        switch (userRole.toLowerCase()) {
+          case 'admin':
+            context.go('/admin-dashboard');
+            break;
+          case 'teacher':
+          case 'instructor':
+            context.go('/teacher-dashboard');
+            break;
+          case 'learner':
+          case 'student':
+          default:
+            context.go('/dashboard');
+            break;
+        }
       } else {
-        // Skip terms and go to landing page
+        // Show terms only if not yet accepted
+        if (!hasAcceptedTerms) {
+          context.go('/terms-and-conditions');
+        } else {
+          // Skip terms and go to landing page
+          context.go('/landing');
+        }
+      }
+    } catch (error, stackTrace) {
+      debugPrint('Critical error in navigation: $error');
+      debugPrint('Stack trace: $stackTrace');
+
+      // Fallback navigation - go to landing page if everything fails
+      if (mounted) {
         context.go('/landing');
       }
     }
