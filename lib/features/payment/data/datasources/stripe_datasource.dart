@@ -190,7 +190,7 @@ class StripeDataSourceImpl implements PaymentDataSource {
   @override
   Future<Map<String, dynamic>> cancelPayment(String transactionId) async {
     try {
-      final response = await dioClient.dio.post(
+      await dioClient.dio.post(
         '$baseUrl/payment_intents/$transactionId/cancel',
         options: Options(
           headers: {

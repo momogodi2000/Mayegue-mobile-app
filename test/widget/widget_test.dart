@@ -5,23 +5,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:provider/single_child_widget.dart';
 import 'package:mayegue/main.dart';
 import 'package:mayegue/shared/providers/app_providers.dart';
 import 'package:mayegue/core/config/environment_config.dart';
 
 void main() {
+  List<SingleChildWidget> getProviders() => appProviders;
   setUpAll(() async {
     // Initialize environment config for tests
     await EnvironmentConfig.init();
   });
 
-  testWidgets('MyApp builds and shows initial screen', (WidgetTester tester) async {
+  testWidgets('MyApp builds and shows initial screen', (
+    WidgetTester tester,
+  ) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(
-      MultiProvider(
-        providers: getProviders(),
-        child: const MyApp(),
-      ),
+      MultiProvider(providers: getProviders(), child: const MyApp()),
     );
 
     // Wait for initialization
@@ -36,10 +37,7 @@ void main() {
 
   testWidgets('MyApp supports localization', (WidgetTester tester) async {
     await tester.pumpWidget(
-      MultiProvider(
-        providers: getProviders(),
-        child: const MyApp(),
-      ),
+      MultiProvider(providers: getProviders(), child: const MyApp()),
     );
 
     await tester.pumpAndSettle();
@@ -52,12 +50,11 @@ void main() {
     expect(materialApp.supportedLocales, contains(const Locale('fr')));
   });
 
-  testWidgets('MyApp has proper theme configuration', (WidgetTester tester) async {
+  testWidgets('MyApp has proper theme configuration', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
-      MultiProvider(
-        providers: getProviders(),
-        child: const MyApp(),
-      ),
+      MultiProvider(providers: getProviders(), child: const MyApp()),
     );
 
     await tester.pumpAndSettle();
@@ -71,10 +68,7 @@ void main() {
 
   testWidgets('MyApp has router configuration', (WidgetTester tester) async {
     await tester.pumpWidget(
-      MultiProvider(
-        providers: getProviders(),
-        child: const MyApp(),
-      ),
+      MultiProvider(providers: getProviders(), child: const MyApp()),
     );
 
     await tester.pumpAndSettle();
@@ -84,12 +78,11 @@ void main() {
     expect(materialApp.routerConfig, isNotNull);
   });
 
-  testWidgets('MyApp handles debug banner correctly', (WidgetTester tester) async {
+  testWidgets('MyApp handles debug banner correctly', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
-      MultiProvider(
-        providers: getProviders(),
-        child: const MyApp(),
-      ),
+      MultiProvider(providers: getProviders(), child: const MyApp()),
     );
 
     await tester.pumpAndSettle();

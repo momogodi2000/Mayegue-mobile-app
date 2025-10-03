@@ -126,7 +126,7 @@ class _NewsletterSubscriptionWidgetState
         children: [
           Row(
             children: [
-              Icon(Icons.mail_outline, color: Colors.white, size: 32),
+              const Icon(Icons.mail_outline, color: Colors.white, size: 32),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -144,7 +144,7 @@ class _NewsletterSubscriptionWidgetState
             widget.customDescription ??
                 'Inscrivez-vous à notre newsletter pour recevoir les dernières actualités, nouveaux cours et offres exclusives.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
             ),
           ),
           const SizedBox(height: 24),
@@ -210,11 +210,11 @@ class _NewsletterSubscriptionWidgetState
               hintText: 'votre@email.com',
               hintStyle: widget.isCompact
                   ? null
-                  : TextStyle(color: Colors.white.withOpacity(0.7)),
+                  : TextStyle(color: Colors.white.withValues(alpha: 0.7)),
               filled: true,
               fillColor: widget.isCompact
                   ? null
-                  : Colors.white.withOpacity(0.2),
+                  : Colors.white.withValues(alpha: 0.2),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: widget.isCompact
@@ -229,7 +229,9 @@ class _NewsletterSubscriptionWidgetState
               ),
               prefixIcon: Icon(
                 Icons.email,
-                color: widget.isCompact ? null : Colors.white.withOpacity(0.8),
+                color: widget.isCompact
+                    ? null
+                    : Colors.white.withValues(alpha: 0.8),
               ),
             ),
             validator: (value) {
@@ -296,8 +298,8 @@ class _NewsletterSubscriptionWidgetState
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: widget.isCompact
-            ? Colors.green.withOpacity(0.1)
-            : Colors.white.withOpacity(0.2),
+            ? Colors.green.withValues(alpha: 0.1)
+            : Colors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: widget.isCompact ? Colors.green : Colors.white,
@@ -348,7 +350,7 @@ class FooterNewsletterWidget extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(
                 context,
-              ).textTheme.bodySmall?.color?.withOpacity(0.6),
+              ).textTheme.bodySmall?.color?.withValues(alpha: 0.6),
             ),
             textAlign: TextAlign.center,
           ),

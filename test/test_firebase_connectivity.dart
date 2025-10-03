@@ -148,7 +148,7 @@ class _FirebaseConnectivityTestState extends State<FirebaseConnectivityTest> {
     _addResult('🔄 Testing network connectivity...');
     try {
       // Simple HTTP test
-      final response = await Future.delayed(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 2));
       _addResult('✅ Network: Connection stable');
     } catch (e) {
       _addResult('❌ Network: Connection issues - $e');

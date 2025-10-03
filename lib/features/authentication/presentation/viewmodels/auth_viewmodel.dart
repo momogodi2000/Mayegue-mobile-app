@@ -247,7 +247,7 @@ class AuthViewModel extends ChangeNotifier {
           _errorMessage = null;
 
           // Clear any local storage/cache if needed
-          // await _clearLocalCache();
+          await _clearLocalCache();
 
           _setLoading(false);
 
