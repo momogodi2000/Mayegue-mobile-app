@@ -29,7 +29,7 @@ class StripeDataSourceImpl implements PaymentDataSource {
       final int amountInCents = (amount * 100).round();
 
       // Create a payment intent
-      final response = await dioClient.post(
+      final response = await dioClient.dio.post(
         '$baseUrl/payment_intents',
         data: {
           'amount': amountInCents,
@@ -85,7 +85,7 @@ class StripeDataSourceImpl implements PaymentDataSource {
   @override
   Future<Map<String, dynamic>> checkPaymentStatus(String transactionId) async {
     try {
-      final response = await dioClient.get(
+      final response = await dioClient.dio.get(
         '$baseUrl/payment_intents/$transactionId',
         options: Options(
           headers: {
@@ -190,7 +190,7 @@ class StripeDataSourceImpl implements PaymentDataSource {
   @override
   Future<Map<String, dynamic>> cancelPayment(String transactionId) async {
     try {
-      final response = await dioClient.post(
+      final response = await dioClient.dio.post(
         '$baseUrl/payment_intents/$transactionId/cancel',
         options: Options(
           headers: {
@@ -216,7 +216,7 @@ class StripeDataSourceImpl implements PaymentDataSource {
     Map<String, dynamic>? metadata,
   }) async {
     try {
-      final response = await dioClient.post(
+      final response = await dioClient.dio.post(
         '$baseUrl/customers',
         data: {
           'email': email,
@@ -248,7 +248,7 @@ class StripeDataSourceImpl implements PaymentDataSource {
     Map<String, dynamic>? metadata,
   }) async {
     try {
-      final response = await dioClient.post(
+      final response = await dioClient.dio.post(
         '$baseUrl/subscriptions',
         data: {
           'customer': customerId,
@@ -288,7 +288,7 @@ class StripeDataSourceImpl implements PaymentDataSource {
         if (reason != null) 'reason': reason,
       };
 
-      final response = await dioClient.post(
+      final response = await dioClient.dio.post(
         '$baseUrl/refunds',
         data: data,
         options: Options(

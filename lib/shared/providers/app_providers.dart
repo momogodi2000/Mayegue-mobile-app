@@ -1,8 +1,11 @@
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import '../../core/services/firebase_service.dart';
 import '../../core/services/admin_setup_service.dart';
 import '../../core/services/two_factor_auth_service.dart';
+import '../../core/sync/general_sync_manager.dart';
+import '../../core/network/network_info.dart';
 import '../../features/authentication/data/datasources/auth_remote_datasource.dart';
 import '../../features/authentication/data/datasources/auth_local_datasource.dart';
 import '../../features/authentication/data/repositories/auth_repository_impl.dart';
@@ -55,11 +58,29 @@ List<SingleChildWidget> get appProviders => [
   ),
   Provider<AuthLocalDataSource>(create: (_) => AuthLocalDataSourceImpl()),
 
+  // Connectivity
+  Provider<Connectivity>(create: (_) => Connectivity()),
+
+  // Network Info
+  ProxyProvider<Connectivity, NetworkInfo>(
+    update: (_, connectivity, __) => NetworkInfo(connectivity),
+  ),
+
+  // Sync Manager
+  ProxyProvider<NetworkInfo, GeneralSyncManager>(
+    update: (_, networkInfo, __) => GeneralSyncManager(networkInfo: networkInfo),
+  ),
+
   // Authentication Repository
-  ProxyProvider2<AuthRemoteDataSource, AuthLocalDataSource, AuthRepository>(
-    update: (_, remoteDataSource, localDataSource, __) => AuthRepositoryImpl(
+  ProxyProvider4<AuthRemoteDataSource, AuthLocalDataSource, Connectivity,
+      GeneralSyncManager, AuthRepository>(
+    update: (_, remoteDataSource, localDataSource, connectivity, syncManager,
+            __) =>
+        AuthRepositoryImpl(
       remoteDataSource: remoteDataSource,
       localDataSource: localDataSource,
+      connectivity: connectivity,
+      syncManager: syncManager,
     ),
   ),
 
@@ -105,8 +126,7 @@ List<SingleChildWidget> get appProviders => [
 
   // Onboarding Repository
   ProxyProvider<OnboardingLocalDataSource, OnboardingRepository>(
-    update: (_, dataSource, __) =>
-        OnboardingRepositoryImpl(localDataSource: dataSource),
+    update: (_, dataSource, __) => OnboardingRepositoryImpl(dataSource),
   ),
 
   // Onboarding Use Cases
