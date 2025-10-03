@@ -14,6 +14,30 @@
       },
       "oauth_client": [
         {
+          "client_id": "853678151393-7g0r33sqq0ghcomhf3leevpipch2lq71.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mayegue.app",
+            "certificate_hash": "44a7e750e8dd9c6295991306e616e9ce0e97370b"
+          }
+        },
+        {
+          "client_id": "853678151393-o48dvvgitsgee1vpujeraj45m4mroluq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mayegue.app",
+            "certificate_hash": "88c040ed458e412839abf715893f8ccd517828cc"
+          }
+        },
+        {
+          "client_id": "853678151393-souu9te1l7l6lrl04d5e3cbi977kr8j6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mayegue.app",
+            "certificate_hash": "7499d9d0d94a422152b8233f2fa79d050a2d0791"
+          }
+        },
+        {
           "client_id": "853678151393-4atq8co6pmqlgiu6tgnjs4t20kfs6189.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -29,6 +53,13 @@
             {
               "client_id": "853678151393-4atq8co6pmqlgiu6tgnjs4t20kfs6189.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "853678151393-7b6ti3ehrhbtf47l14oph7k71ne8r8as.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.mayegue.app"
+              }
             }
           ]
         }
