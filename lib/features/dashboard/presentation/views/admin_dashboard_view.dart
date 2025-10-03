@@ -5,6 +5,7 @@ import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/supported_languages.dart';
 import '../../../../core/constants/routes.dart';
 import '../../../../shared/widgets/user_guide_widget.dart';
+import '../../../../shared/widgets/theme_switcher_widget.dart';
 import '../viewmodels/admin_dashboard_viewmodel.dart';
 import '../widgets/admin_stats_widget.dart';
 import '../widgets/user_management_widget.dart';
@@ -50,6 +51,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView>
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
+          const CompactThemeSwitcher(),
           // System alerts
           Consumer<AdminDashboardViewModel>(
             builder: (context, viewModel, child) {

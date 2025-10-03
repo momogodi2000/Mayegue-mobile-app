@@ -5,6 +5,7 @@ import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/supported_languages.dart';
 import '../../../../core/constants/routes.dart';
 import '../../../../shared/widgets/user_guide_widget.dart';
+import '../../../../shared/widgets/theme_switcher_widget.dart';
 import '../viewmodels/teacher_dashboard_viewmodel.dart';
 import '../widgets/teacher_stats_widget.dart';
 import '../widgets/student_progress_widget.dart';
@@ -51,6 +52,7 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView>
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
+          const CompactThemeSwitcher(),
           IconButton(
             icon: const Icon(Icons.notifications),
             onPressed: () => _showNotifications(context),

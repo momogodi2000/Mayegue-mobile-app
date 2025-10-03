@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
@@ -106,7 +107,10 @@ class AuthViewModel extends ChangeNotifier {
       return false;
     }
     try {
-      final response = await verifyPhoneNumberUsecase(_verificationId!, smsCode);
+      final response = await verifyPhoneNumberUsecase(
+        _verificationId!,
+        smsCode,
+      );
       if (response.success == true) {
         _currentUser = response.user;
         _setLoading(false);
@@ -125,6 +129,7 @@ class AuthViewModel extends ChangeNotifier {
       return false;
     }
   }
+
   // Getters
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -152,7 +157,11 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   // Register
-  Future<bool> register(String email, String password, String displayName) async {
+  Future<bool> register(
+    String email,
+    String password,
+    String displayName,
+  ) async {
     _setLoading(true);
     _clearError();
 
@@ -176,17 +185,23 @@ class AuthViewModel extends ChangeNotifier {
 
   // Google Sign In
   Future<bool> signInWithGoogle() async {
-    return _handleOAuthAuthentication(() => googleSignInUsecase(const NoParams()));
+    return _handleOAuthAuthentication(
+      () => googleSignInUsecase(const NoParams()),
+    );
   }
 
   // Facebook Sign In
   Future<bool> signInWithFacebook() async {
-    return _handleOAuthAuthentication(() => facebookSignInUsecase(const NoParams()));
+    return _handleOAuthAuthentication(
+      () => facebookSignInUsecase(const NoParams()),
+    );
   }
 
   // Apple Sign In
   Future<bool> signInWithApple() async {
-    return _handleOAuthAuthentication(() => appleSignInUsecase(const NoParams()));
+    return _handleOAuthAuthentication(
+      () => appleSignInUsecase(const NoParams()),
+    );
   }
 
   // Forgot Password
@@ -194,7 +209,9 @@ class AuthViewModel extends ChangeNotifier {
     _setLoading(true);
     _clearError();
 
-    final result = await forgotPasswordUsecase(ForgotPasswordParams(email: email));
+    final result = await forgotPasswordUsecase(
+      ForgotPasswordParams(email: email),
+    );
 
     return result.fold(
       (failure) {
@@ -209,27 +226,65 @@ class AuthViewModel extends ChangeNotifier {
     );
   }
 
-  // Logout
+  // Logout - Enhanced with proper session clearing
   Future<bool> logout() async {
     _setLoading(true);
     _clearError();
 
-    final result = await logoutUsecase();
+    try {
+      final result = await logoutUsecase();
 
-    return result.fold(
-      (failure) {
-        _setError(_mapFailureToMessage(failure));
-        _setLoading(false);
-        return false;
-      },
-      (_) {
-        _currentUser = null;
-        _setLoading(false);
-        authRefreshNotifier.notifyAuthChanged();
-        notifyListeners();
-        return true;
-      },
-    );
+      return result.fold(
+        (failure) {
+          _setError(_mapFailureToMessage(failure));
+          _setLoading(false);
+          return false;
+        },
+        (_) async {
+          // Clear all user state
+          _currentUser = null;
+          _isOnboardingCompleted = false;
+          _errorMessage = null;
+
+          // Clear any local storage/cache if needed
+          // await _clearLocalCache();
+
+          _setLoading(false);
+
+          // Notify router for redirect
+          authRefreshNotifier.notifyAuthChanged();
+          notifyListeners();
+
+          if (kDebugMode) {
+            print('User logged out successfully, session cleared');
+          }
+
+          return true;
+        },
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error during logout: $e');
+      }
+      _setError('Erreur lors de la déconnexion');
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  /// Clear local cache/storage (implement if using Hive/SharedPreferences)
+  Future<void> _clearLocalCache() async {
+    try {
+      // Add your cache clearing logic here
+      // Example:
+      // final prefs = await SharedPreferences.getInstance();
+      // await prefs.clear();
+      // await Hive.deleteBoxFromDisk('userBox');
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error clearing local cache: $e');
+      }
+    }
   }
 
   // Reset password

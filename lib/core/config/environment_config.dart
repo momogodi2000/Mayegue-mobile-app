@@ -58,6 +58,14 @@ class EnvironmentConfig {
   static String get noupaiWebhookSecret =>
       dotenv.get('NOUPAI_WEBHOOK_SECRET', fallback: '');
 
+  // Stripe Payment Gateway (International)
+  static String get stripePublishableKey =>
+      dotenv.get('STRIPE_PUBLISHABLE_KEY', fallback: '');
+  static String get stripeSecretKey =>
+      dotenv.get('STRIPE_SECRET_KEY', fallback: '');
+  static String get stripeWebhookSecret =>
+      dotenv.get('STRIPE_WEBHOOK_SECRET', fallback: '');
+
   // Base URL
   static String get baseUrl =>
       dotenv.get('BASE_URL', fallback: 'https://mayegue.app');
@@ -67,11 +75,56 @@ class EnvironmentConfig {
   static String get appName => dotenv.get('APP_NAME', fallback: 'Mayegue');
   static String get appVersion => dotenv.get('APP_VERSION', fallback: '1.0.0');
 
+  // Default Admin Configuration
+  static String get defaultAdminEmail =>
+      dotenv.get('DEFAULT_ADMIN_EMAIL', fallback: 'admin@mayegue.app');
+  static String get defaultAdminPassword =>
+      dotenv.get('DEFAULT_ADMIN_PASSWORD', fallback: '');
+  static String get defaultAdminName =>
+      dotenv.get('DEFAULT_ADMIN_NAME', fallback: 'Administrateur');
+
+  // Security
+  static String get jwtSecret => dotenv.get('JWT_SECRET', fallback: '');
+  static String get encryptionKey => dotenv.get('ENCRYPTION_KEY', fallback: '');
+
+  // Feature Flags
+  static bool get enable2FA =>
+      dotenv.get('ENABLE_2FA', fallback: 'true').toLowerCase() == 'true';
+  static bool get enableGoogleAuth =>
+      dotenv.get('ENABLE_GOOGLE_AUTH', fallback: 'true').toLowerCase() ==
+      'true';
+  static bool get enableFacebookAuth =>
+      dotenv.get('ENABLE_FACEBOOK_AUTH', fallback: 'true').toLowerCase() ==
+      'true';
+  static bool get enablePhoneAuth =>
+      dotenv.get('ENABLE_PHONE_AUTH', fallback: 'true').toLowerCase() == 'true';
+  static bool get enableAiAssistant =>
+      dotenv.get('ENABLE_AI_ASSISTANT', fallback: 'true').toLowerCase() ==
+      'true';
+  static bool get enableOfflineMode =>
+      dotenv.get('ENABLE_OFFLINE_MODE', fallback: 'true').toLowerCase() ==
+      'true';
+
+  // Newsletter & Marketing
+  static String get emailServiceApiKey =>
+      dotenv.get('EMAIL_SERVICE_API_KEY', fallback: '');
+  static String get newsletterListId =>
+      dotenv.get('NEWSLETTER_LIST_ID', fallback: '');
+
   // Validation
   static bool get isProduction => appEnv == 'production';
   static bool get isDevelopment => appEnv == 'development';
 
   static bool get hasValidPaymentConfig =>
-      campayApiKey.isNotEmpty && campaySecret.isNotEmpty ||
-      noupaiApiKey.isNotEmpty;
+      (campayApiKey.isNotEmpty && campaySecret.isNotEmpty) ||
+      noupaiApiKey.isNotEmpty ||
+      stripePublishableKey.isNotEmpty;
+
+  static bool get hasStripeConfig =>
+      stripePublishableKey.isNotEmpty && stripeSecretKey.isNotEmpty;
+
+  static bool get hasCampayConfig =>
+      campayApiKey.isNotEmpty && campaySecret.isNotEmpty;
+
+  static bool get hasNoupaiConfig => noupaiApiKey.isNotEmpty;
 }

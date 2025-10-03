@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../viewmodels/student_dashboard_viewmodel.dart';
 import '../../../../shared/widgets/layouts/app_scaffold.dart';
 import '../../../../shared/widgets/user_guide_widget.dart';
+import '../../../../shared/widgets/theme_switcher_widget.dart';
 import '../../../../core/constants/supported_languages.dart';
 import '../../../../core/constants/routes.dart';
 
@@ -81,6 +82,7 @@ class _StudentDashboardViewState extends State<StudentDashboardView>
               ],
             ),
             actions: [
+              const CompactThemeSwitcher(),
               IconButton(
                 icon: const Icon(Icons.notifications),
                 onPressed: () => _showNotifications(context, viewModel),

@@ -1,6 +1,11 @@
 import sqlite3
 import re
+import sys
 from datetime import datetime
+
+# Set stdout encoding to UTF-8 for Windows compatibility
+if sys.platform == 'win32':
+    sys.stdout.reconfigure(encoding='utf-8')
 
 def create_database():
     # Connect to SQLite database (creates if doesn't exist)
@@ -22,8 +27,8 @@ def create_database():
     # Commit changes and close connection
     conn.commit()
     conn.close()
-    print("✅ Cameroon Languages Database created successfully!")
-    print("📊 Database file: cameroon_languages.db")
+    print("OK - Cameroon Languages Database created successfully!")
+    print("INFO - Database file: cameroon_languages.db")
 
 def create_tables(cursor):
     # Languages table
